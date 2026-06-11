@@ -36,7 +36,8 @@ export default function Sidebar({
     "/warehouse": "Warehouse",
     "/ledger": "Ledger",
     "/purchase": "Purchase",
-    "/transaction/expense": "Expense",
+    "/expenses" : "Expenses",
+    
 
     "/attendance": "Attendance",
     "/payroll": "Payroll",
@@ -164,7 +165,7 @@ export default function Sidebar({
         <MenuItem
           icon={<ShoppingBag size={18} />}
           label="Expense"
-          route="/transaction/expense"
+          route="/expenses"
           active={activeMenu === "Expense"}
           onClick={handleMenuClick}
         />

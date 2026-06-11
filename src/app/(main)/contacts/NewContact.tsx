@@ -1,14 +1,13 @@
 "use client";
+
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
- import { Button } from "@/components/ui/button";
-import { postAPI, setSession,  ApiResponse } from "@/app/utils/api";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import ConfirmModal from "@/app/utils/confirmationModal";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import DynamicField from "@/components/ui/fields/dynamicField";
+import ConfirmModal from "@/app/utils/confirmationModal";
+import { Toaster } from "@/components/ui/toaster";
 
 type FormValues = {
   full_name: string;
@@ -25,17 +24,17 @@ type FormValues = {
   bank_name: string;
   aadhaar: string;
   pan: string;
-  // if you're using these in form:
   registeration_id?: string;
   gst_no?: string;
 };
- type ContactFormProps = {
+
+type ContactFormProps = {
   editId: string | null;
 };
 
 export default function ContactForm({ editId }: ContactFormProps) {
-const router = useRouter();
- const pathname = usePathname();
+  const router = useRouter();
+  const pathname = usePathname();
   const todayStr = format(new Date(), "dd/MM/yyyy");
 
   const methods = useForm<FormValues>({
@@ -62,138 +61,109 @@ const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState<FormValues | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2500);
+  };
 
   const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
     setFormData(data);
     setShowConfirm(true);
   };
 
-//  const confirmSubmit = async () => {
-//   if (!formData) return;
+  const confirmSubmit = async () => {
+    if (!formData) return;
+    setLoading(true);
 
-//   setLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-//   try {
-//     const payload = {
-//       data: {
-//         ...formData,
-//         contact_id: editId ?? null,
-//       },
-//     };
+      if (editId) {
+        showToast("Contact updated successfully ", "success");
+      } else {
+        showToast("Contact added successfully ", "success");
+      }
 
-//     const res = await postAPI("/add-contact", payload, true);
+      methods.reset();
+      setTimeout(() => {
+        router.push(pathname);
+      }, 1200);
 
-//     if (res.status === "success") {
-//       toast.success(
-//         editId ? "Contact updated 👍" : "Contact added successfully ✅"
-//       );
-
-//       methods.reset();
-//       router.push(pathname);
-//     } else {
-//       toast.error(res.message || "Failed ❌");
-//     }
-//   } catch (err: any) {
-//     toast.error(err.message || "Something went wrong ❌");
-//   } finally {
-//     setLoading(false);
-//     setShowConfirm(false);
-//   }
-// };
-
-
-const confirmSubmit = async () => {
-  if (!formData) return;
-
-  setLoading(true);
-
-  try {
-    // Simulate API delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    if (editId) {
-      toast.success("Contact updated successfully 👍");
-    } else {
-      toast.success("Contact added successfully ✅");   // ← As per your request
+    } catch (err: any) {
+      showToast("Something went wrong ", "error");
+    } finally {
+      setLoading(false);
+      setShowConfirm(false);
     }
-
-    methods.reset();           // Clear the form
-    router.push(pathname);     // Go back to list page
-
-  } catch (err: any) {
-    toast.error("Something went wrong ");
-  } finally {
-    setLoading(false);
-    setShowConfirm(false);
-  }
-};
-
-const fillFormValues = (data: any) => {
-  Object.keys(data).forEach((key) => {
-    if (methods.getValues(key as keyof FormValues) !== undefined) {
-      methods.setValue(key as keyof FormValues, data[key] ?? "");
-    }
-  });
-};
-
-
- useEffect(() => {
-  if (!editId) return;
-
-  const fetchContact = async () => {
-    const res = await postAPI(
-  "/get-contact-by-id", // 👈 match your backend route
-  { data: { contact_id: editId } },
-  true
-);
-    if (res.status === "success" && res.data) {
-  fillFormValues(res.data);
-}
   };
 
-  fetchContact();
-}, [editId]);
+  const fillFormValues = (data: any) => {
+    Object.keys(data).forEach((key) => {
+      if (key in methods.getValues()) {
+        methods.setValue(key as keyof FormValues, data[key] ?? "");
+      }
+    });
+  };
 
+  useEffect(() => {
+    if (!editId) return;
+
+    const fetchContact = async () => {
+      try {
+        // Simulate fetch
+        await new Promise(resolve => setTimeout(resolve, 600));
+        // In real app: await postAPI(...)
+        // fillFormValues(res.data);
+      } catch (err) {
+        showToast("Failed to load contact data", "error");
+      }
+    };
+
+    fetchContact();
+  }, [editId]);
 
   const handleCancel = () => {
-    methods.reset();      // clears the form back to defaultValues
-    setFormData(null);    // clear any staged data
+    methods.reset();
+    setFormData(null);
     setShowConfirm(false);
-       router.push(`${pathname}`);
+    router.push(pathname);
   };
 
- const Row = ({
-  label,
-  required = false,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) => (
-  <div className="flex items-center justify-between gap-4">
-    <label className="w-1/3 font-medium text-gray-600 text-[14px]">
-      {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
-    </label>
-    <div className="w-2/3">{children}</div>
-  </div>
-);
+  const onInvalid = () => {
+    showToast("Please fill all mandatory fields ❗", "error");
+  };
 
-
-  const onInvalid = (errors: any) => {
-  // You can log to see which fields failed:
-  console.log(errors);
-  toast.error("Please fill all mandatory fields ❗");
-};
-
+  const Row = ({
+    label,
+    required = false,
+    children,
+  }: {
+    label: string;
+    required?: boolean;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex items-center justify-between gap-4">
+      <label className="w-1/3 font-medium text-gray-600 text-[14px]">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <div className="w-2/3">{children}</div>
+    </div>
+  );
 
   return (
     <FormProvider {...methods}>
-      <form
-          
-        className="flex flex-col bg-white py-6"
-      >
+      {toast && (
+        <Toaster
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      <form className="flex flex-col bg-white py-6">
         <div className="flex-1 max-h-[calc(100vh-180px)] overflow-y-auto px-3 pb-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* LEFT COLUMN — Basic Details */}
@@ -208,12 +178,12 @@ const fillFormValues = (data: any) => {
                     name="full_name"
                     placeholder="Enter Full name"
                     className="capitalize"
-   validation={{ required: "Contact Name is required" }}                  />
+                    validation={{ required: "Contact Name is required" }}
+                  />
                 </Row>
 
                 <Row label="Phone Number" required>
                   <DynamicField
-                  
                     type="input"
                     name="phone"
                     placeholder="Enter 10 Digit Phone number"
@@ -221,6 +191,7 @@ const fillFormValues = (data: any) => {
                     validation={{ required: "Phone Number is required" }}
                   />
                 </Row>
+
                 <Row label="Alternate Number">
                   <DynamicField
                     type="input"
@@ -229,20 +200,15 @@ const fillFormValues = (data: any) => {
                     className="only-number no-space limit-10"
                   />
                 </Row>
+
                 <Row label="Email">
-                  <DynamicField
-                    type="input"
-                    name="email"
-                    placeholder="Enter Email"
-                  />
+                  <DynamicField type="input" name="email" placeholder="Enter Email" />
                 </Row>
+
                 <Row label="Address">
-                  <DynamicField
-                    type="textarea"
-                    name="address"
-                    placeholder="Enter address"
-                  />
+                  <DynamicField type="textarea" name="address" placeholder="Enter address" />
                 </Row>
+
                 <Row label="Pincode">
                   <DynamicField
                     type="input"
@@ -251,6 +217,7 @@ const fillFormValues = (data: any) => {
                     className="only-number no-space limit-6"
                   />
                 </Row>
+
                 <Row label="State">
                   <DynamicField
                     type="input"
@@ -262,12 +229,9 @@ const fillFormValues = (data: any) => {
               </div>
             </div>
 
-            {/* RIGHT COLUMN — Bank & Proof Details */}
+            {/* RIGHT COLUMN */}
             <div className="space-y-6">
-              {/* BANK DETAILS */}
-              <h3 className="text-lg font-medium text-[#103BB5] mt-6">
-                Bank Details
-              </h3>
+              <h3 className="text-lg font-medium text-[#103BB5] mt-6">Bank Details</h3>
               <div className="space-y-4">
                 <Row label="Bank Account Number">
                   <DynamicField
@@ -303,10 +267,7 @@ const fillFormValues = (data: any) => {
                 </Row>
               </div>
 
-              {/* PROOF DETAILS */}
-              <h3 className="text-lg font-medium text-[#103BB5] mt-6">
-                Proof Details
-              </h3>
+              <h3 className="text-lg font-medium text-[#103BB5] mt-6">Proof Details</h3>
               <div className="space-y-4">
                 <Row label="Aadhaar Number">
                   <DynamicField
@@ -345,7 +306,7 @@ const fillFormValues = (data: any) => {
           </div>
         </div>
 
-        {/* FOOTER WITH SUBMIT + CANCEL */}
+        {/* FOOTER */}
         <footer className="fixed bottom-0 left-68 w-[calc(100%-16rem)] bg-white border-t py-2 px-6 flex justify-end space-x-4">
           <Button
             type="button"
@@ -356,26 +317,24 @@ const fillFormValues = (data: any) => {
             Cancel
           </Button>
 
- <Button
-  variant="default"
-  type="submit"
-  disabled={loading}
-  onClick={methods.handleSubmit(handleFormSubmit, onInvalid)}
->
-  {loading ? "Submitting..." : editId ? "Update Contact" : "Add Contact"}
-</Button>
-
+          <Button
+            variant="default"
+            type="submit"
+            disabled={loading}
+            onClick={methods.handleSubmit(handleFormSubmit, onInvalid)}
+          >
+            {loading ? "Submitting..." : editId ? "Update Contact" : "Add Contact"}
+          </Button>
         </footer>
       </form>
 
-      {/* Confirmation Modal */}
       <ConfirmModal
         open={showConfirm}
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmSubmit}
         loading={loading}
         title="Confirm Submission"
-        message="Are you sure you want to add this contact?"
+        message={editId ? "Are you sure you want to update this contact?" : "Are you sure you want to add this contact?"}
       />
     </FormProvider>
   );

@@ -351,16 +351,15 @@
 //   );
 // }
 
-
-
 "use client";
 
-import { useForm, FormProvider, SubmitHandler, useFieldArray } from "react-hook-form";
+import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
 import { FormField } from "@/app/utils/dynamicField";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo, useEffect } from "react";
-import toast from "react-hot-toast";
+import { format } from "date-fns";
 import ConfirmModal from "@/app/utils/confirmationModal";
+import { Toaster } from "@/components/ui/toaster";
 
 type Option = { label: string; value: string };
 
@@ -402,14 +401,19 @@ export default function MaterialForm() {
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState<FormValues | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  // ✅ Correct way to use useFieldArray
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const { control, watch, setValue, reset } = methods;
+
   const { fields, append, remove } = useFieldArray({
-    control: methods.control,
+    control,
     name: "additional_units",
   });
-
-  const { watch, setValue } = methods;
 
   const watchedMainUnit = watch("main_unit");
   const watchedAdditional = watch("additional_units") || [];
@@ -469,17 +473,16 @@ export default function MaterialForm() {
 
   const confirmSubmit = async () => {
     if (!formData) return;
-
     setLoading(true);
+
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      toast.success("Material added successfully ✅");
+      showToast("Material added successfully");
 
-      methods.reset();
-      // router.push("/materials"); // Uncomment when you want to redirect
+      reset(); // Reset form after success
     } catch (err) {
-      toast.error("Something went wrong ❌");
+      showToast("Something went wrongS", "error");
     } finally {
       setLoading(false);
       setShowConfirm(false);
@@ -488,9 +491,9 @@ export default function MaterialForm() {
   };
 
   const handleCancel = () => {
-    methods.reset();
-    setShowConfirm(false);
+    reset();
     setFormData(null);
+    setShowConfirm(false);
   };
 
   const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -502,6 +505,15 @@ export default function MaterialForm() {
 
   return (
     <FormProvider {...methods}>
+      {/* Custom Toast */}
+      {toast && (
+        <Toaster
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="flex flex-col bg-white py-6">
         <div className="flex-1 max-h-[calc(100vh-180px)] overflow-y-auto px-3 pb-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -543,7 +555,6 @@ export default function MaterialForm() {
                     placeholder="Select main unit"
                     options={unitOptions}
                     validation={{ required: "Main unit is required" }}
-                    disabled={loading}
                   />
                 </Row>
               </div>
@@ -561,21 +572,18 @@ export default function MaterialForm() {
                         name={`additional_units.${idx}.unit`}
                         placeholder={`Select unit #${idx + 1}`}
                         options={getOptionsForRow(idx)}
-                        disabled={loading}
                       />
                       <FormField
                         type="input"
                         name={`additional_units.${idx}.quantity`}
                         placeholder="Quantity"
                         className="numbers-decimal"
-                        disabled={loading}
                       />
                     </div>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => remove(idx)}
-                      disabled={loading}
                     >
                       Remove
                     </Button>
@@ -586,7 +594,7 @@ export default function MaterialForm() {
                   type="button"
                   variant="secondary"
                   onClick={handleAppendUnit}
-                  disabled={loading || !canAddMoreUnits()}
+                  disabled={!canAddMoreUnits()}
                 >
                   + Add Unit
                 </Button>

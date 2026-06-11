@@ -212,7 +212,28 @@ const dummyMaterials: Equipment[] = [
   { id: 8, material_name: "Emerald Pendant", short_code: "EP01", hsn: "71162000", created_at: "2025-06-08" },
   { id: 9, material_name: "Gold Ring", short_code: "GR01", hsn: "71131900", created_at: "2025-06-09" },
   { id: 10, material_name: "Silver Anklet", short_code: "SA01", hsn: "71131100", created_at: "2025-06-10" },
-  // ... (rest of your data)
+
+  { id: 11, material_name: "Gold Chain 22K", short_code: "GC22", hsn: "71081300", created_at: "2025-06-01" },
+  { id: 12, material_name: "Silver Bar", short_code: "SB01", hsn: "71069290", created_at: "2025-06-02" },
+  { id: 13, material_name: "Diamond Ring", short_code: "DR01", hsn: "71131900", created_at: "2025-06-03" },
+  { id: 14, material_name: "Platinum Band", short_code: "PB01", hsn: "71131910", created_at: "2025-06-04" },
+  { id: 15, material_name: "Gold Bangle", short_code: "GB22", hsn: "71081300", created_at: "2025-06-05" },
+  { id: 16, material_name: "Silver Coin", short_code: "SC01", hsn: "71069290", created_at: "2025-06-06" },
+  { id: 17, material_name: "Ruby Necklace", short_code: "RN01", hsn: "71162000", created_at: "2025-06-07" },
+  { id: 18, material_name: "Emerald Pendant", short_code: "EP01", hsn: "71162000", created_at: "2025-06-08" },
+  { id: 19, material_name: "Gold Ring", short_code: "GR01", hsn: "71131900", created_at: "2025-06-09" },
+  { id: 20, material_name: "Silver Anklet", short_code: "SA01", hsn: "71131100", created_at: "2025-06-10" },
+  { id: 21, material_name: "Gold Chain 22K", short_code: "GC22", hsn: "71081300", created_at: "2025-06-01" },
+  { id: 22, material_name: "Silver Bar", short_code: "SB01", hsn: "71069290", created_at: "2025-06-02" },
+  { id: 23, material_name: "Diamond Ring", short_code: "DR01", hsn: "71131900", created_at: "2025-06-03" },
+  { id: 24, material_name: "Platinum Band", short_code: "PB01", hsn: "71131910", created_at: "2025-06-04" },
+  { id: 25, material_name: "Gold Bangle", short_code: "GB22", hsn: "71081300", created_at: "2025-06-05" },
+  { id: 26, material_name: "Silver Coin", short_code: "SC01", hsn: "71069290", created_at: "2025-06-06" },
+  { id: 27, material_name: "Ruby Necklace", short_code: "RN01", hsn: "71162000", created_at: "2025-06-07" },
+  { id: 28, material_name: "Emerald Pendant", short_code: "EP01", hsn: "71162000", created_at: "2025-06-08" },
+  { id: 29, material_name: "Gold Ring", short_code: "GR01", hsn: "71131900", created_at: "2025-06-09" },
+  { id: 30, material_name: "Silver Anklet", short_code: "SA01", hsn: "71131100", created_at: "2025-06-10" },
+
 ];
 
 export default function MaterialList() {

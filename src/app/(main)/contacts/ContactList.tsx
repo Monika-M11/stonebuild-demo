@@ -303,7 +303,26 @@ const dummyContacts: Contact[] = [
   { id: "13", full_name: "Rahul Sharma", phone: "9988771122", email: "rahul@email.com", bank_name: "HDFC", state: "Delhi", pincode: "110001", address: "Connaught Place", created_at: "2025-06-13", status: 0, ifsc: "HDFC0009900" },
   { id: "14", full_name: "Sneha Iyer", phone: "9345678901", email: "sneha@email.com", bank_name: "Canara", state: "Tamil Nadu", pincode: "600018", address: "Adyar", created_at: "2025-06-14", status: 1, ifsc: "CNRB0001122" },
   { id: "15", full_name: "Prakash Rao", phone: "9871234560", email: "prakash@email.com", bank_name: "Kotak", state: "Telangana", pincode: "500082", address: "Banjara Hills", created_at: "2025-06-15", status: 1, ifsc: "KKBK0003344" },
+     { id: "16", full_name: "Ramesh Kumar", phone: "9876543210", email: "ramesh@email.com", bank_name: "SBI", state: "Tamil Nadu", pincode: "600001", address: "123 MG Road, Chennai", created_at: "2025-06-01", status: 1, ifsc: "SBIN0001234" },
+  { id: "17", full_name: "Priya Sharma", phone: "9123456789", email: "priya@email.com", bank_name: "HDFC", state: "Karnataka", pincode: "560001", address: "45 Brigade Road, Bangalore", created_at: "2025-06-02", status: 1, ifsc: "HDFC0005678" },
+  { id: "18", full_name: "Suresh Babu", phone: "9988776655", email: "suresh@email.com", bank_name: "ICICI", state: "Tamil Nadu", pincode: "600028", address: "78 Anna Nagar, Chennai", created_at: "2025-06-03", status: 0, ifsc: "ICIC0009876" },
+  { id: "19", full_name: "Lakshmi Narayanan", phone: "9871234567", email: "lakshmi@email.com", bank_name: "Axis Bank", state: "Tamil Nadu", pincode: "600002", address: "22 Nungambakkam", created_at: "2025-06-04", status: 1, ifsc: "AXSB0001122" },
+  { id: "20", full_name: "Vijay Kumar", phone: "9345678901", email: "vijay@email.com", bank_name: "Canara Bank", state: "Kerala", pincode: "695001", address: "Kochi Junction", created_at: "2025-06-05", status: 1, ifsc: "CNRB0003344" },
+  { id: "21", full_name: "Anitha Reddy", phone: "9178901234", email: "anitha@email.com", bank_name: "Kotak", state: "Andhra Pradesh", pincode: "500001", address: "Hyderabad", created_at: "2025-06-06", status: 0, ifsc: "KKBK0005566" },
+  { id: "22", full_name: "Manoj Patel", phone: "9823456789", email: "manoj@email.com", bank_name: "SBI", state: "Gujarat", pincode: "380001", address: "Ahmedabad", created_at: "2025-06-07", status: 1, ifsc: "SBIN0007788" },
+  { id: "23", full_name: "Geetha Menon", phone: "9898765432", email: "geetha@email.com", bank_name: "HDFC", state: "Tamil Nadu", pincode: "600015", address: "T Nagar, Chennai", created_at: "2025-06-08", status: 1, ifsc: "HDFC0009900" },
+  { id: "24", full_name: "Karthik Raj", phone: "9012345678", email: "karthik@email.com", bank_name: "ICICI", state: "Tamil Nadu", pincode: "600040", address: "Anna Nagar West", created_at: "2025-06-09", status: 1, ifsc: "ICIC0001122" },
+  { id: "25", full_name: "Divya Nair", phone: "9567890123", email: "divya@email.com", bank_name: "Federal Bank", state: "Kerala", pincode: "682001", address: "Ernakulam", created_at: "2025-06-10", status: 0, ifsc: "FDRL0003344" },
+  { id:  "26", full_name: "Arjun Singh", phone: "9876540987", email: "arjun@email.com", bank_name: "Axis", state: "Maharashtra", pincode: "400001", address: "Mumbai", created_at: "2025-06-11", status: 1, ifsc: "AXSB0005566" },
+  { id: "27", full_name: "Meena Kumari", phone: "9123459876", email: "meena@email.com", bank_name: "SBI", state: "Tamil Nadu", pincode: "600033", address: "Mylapore", created_at: "2025-06-12", status: 1, ifsc: "SBIN0007788" },
+  { id: "28", full_name: "Rahul Sharma", phone: "9988771122", email: "rahul@email.com", bank_name: "HDFC", state: "Delhi", pincode: "110001", address: "Connaught Place", created_at: "2025-06-13", status: 0, ifsc: "HDFC0009900" },
+  { id: "29", full_name: "Sneha Iyer", phone: "9345678901", email: "sneha@email.com", bank_name: "Canara", state: "Tamil Nadu", pincode: "600018", address: "Adyar", created_at: "2025-06-14", status: 1, ifsc: "CNRB0001122" },
+  { id: "20", full_name: "Prakash Rao", phone: "9871234560", email: "prakash@email.com", bank_name: "Kotak", state: "Telangana", pincode: "500082", address: "Banjara Hills", created_at: "2025-06-15", status: 1, ifsc: "KKBK0003344" },
+
+
 ];
+
+
 
 export default function ContactList() {
   const router = useRouter();
