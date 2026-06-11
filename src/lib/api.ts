@@ -1,22 +1,42 @@
-const BASE_URL = "https://api.stonebase.in"; // change to your PHP backend
+ const BASE_URL = "https://q2cp7g9m-8080.inc1.devtunnels.ms/";
 
-type ApiOptions = {
-  url: string;
-  method?: "POST" | "GET" | "PUT" | "DELETE";
-  data?: any;
+export const API_ENDPOINTS = {
+  LOGIN: "login",
+  ADD_CONTACT: "add-contact",
+  CONTACT_LIST: "contact-list",
+  ADD_WAREHOUSE: "add-warehouse",
+  DASHBOARD: "dashboard",
+  SIGNUP: "signup",
 };
 
-export async function apiRequest({ url, method = "POST", data }: ApiOptions) {
+type ApiOptions = {
+  endpoint: keyof typeof API_ENDPOINTS;
+  data?: any;
+  token?: string;
+};
+
+export async function apiRequest({
+  endpoint,
+  data = {},
+  token,
+}: ApiOptions) {
   try {
-    const res = await fetch(`${BASE_URL}${url}`, {
-      method,
+    const url = `${BASE_URL}${API_ENDPOINTS[endpoint]}`;
+
+    const res = await fetch(url, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token && {
+          Authorization: `Bearer ${token}`,
+        }),
       },
-      body: method !== "GET" ? JSON.stringify(data) : undefined,
+      body: JSON.stringify(data),
     });
 
-    const result = await res.json();
+    const text = await res.text();
+
+    const result = text ? JSON.parse(text) : {};
 
     if (!res.ok) {
       throw new Error(result.message || "Something went wrong");
@@ -24,6 +44,6 @@ export async function apiRequest({ url, method = "POST", data }: ApiOptions) {
 
     return result;
   } catch (error: any) {
-    throw error;
+    throw new Error(error.message);
   }
 }
