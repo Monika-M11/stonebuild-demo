@@ -343,6 +343,7 @@ type Props = {
     | "checkbox"
     | "datepicker"
     | "typeahead"
+    | "select"
     | "toggle";        // 🔹 NEW
   placeholder?: string;
   options?: Option[] | string[];
@@ -593,6 +594,36 @@ export const FormField = ({
           validation={validation}
         />
       );
+
+
+            case "select": {
+  const opts = normalizeOptions(options);
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      rules={validation}
+      render={({ field }) => (
+        <select
+          {...field}
+          className={`${baseInputClass} ${className ?? ""}`}
+          disabled={readonly || disabled}
+        >
+          <option value="">
+            {placeholder || "-- Select --"}
+          </option>
+
+          {opts.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      )}
+    />
+  );
+}
 
    case "toggle":
   return (

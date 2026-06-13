@@ -240,6 +240,16 @@ const dummyEquipments: Equipment[] = [
   { id: 18, equipment_name: "Gemstone Identifier", brand: "Gemoro", model: "GS-500", status: "active", codes_count: 6, created_at: "2025-06-18" },
   { id: 19, equipment_name: "Precision Drill", brand: "Foredom", model: "SR-8", status: "active", codes_count: 4, created_at: "2025-06-19" },
   { id: 20, equipment_name: "Safety Cabinet", brand: "Godrej", model: "SC-300", status: "active", codes_count: 2, created_at: "2025-06-20" },
+  { id: 21, equipment_name: "Gold Testing Machine", brand: "Karatmeter", model: "KM-2025", status: "active", codes_count: 5, created_at: "2025-06-01" },
+  { id: 22, equipment_name: "Digital Weighing Scale", brand: "CAS", model: "CS-500", status: "active", codes_count: 3, created_at: "2025-06-02" },
+  { id: 23, equipment_name: "Laser Engraver", brand: "Gravotech", model: "LS-100", status: "inactive", codes_count: 8, created_at: "2025-06-03" },
+  { id: 24, equipment_name: "Polishing Machine", brand: "Suhner", model: "P-300", status: "active", codes_count: 4, created_at: "2025-06-04" },
+  { id: 25, equipment_name: "Jewelry Cutter", brand: "Proxxon", model: "DS-460", status: "active", codes_count: 6, created_at: "2025-06-05" },
+  { id: 26, equipment_name: "Microscope", brand: "Olympus", model: "SZ-61", status: "active", codes_count: 2, created_at: "2025-06-06" },
+  { id: 27, equipment_name: "Ultrasonic Cleaner", brand: "Crest", model: "U-100", status: "inactive", codes_count: 7, created_at: "2025-06-07" },
+  { id: 28, equipment_name: "Melting Furnace", brand: "Indutherm", model: "MF-200", status: "active", codes_count: 3, created_at: "2025-06-08" },
+  { id: 29, equipment_name: "Engraving Tool", brand: "GRS", model: "GraverMax", status: "active", codes_count: 5, created_at: "2025-06-09" },
+  { id: 30, equipment_name: "Diamond Tester", brand: "Presidium", model: "DT-100", status: "active", codes_count: 4, created_at: "2025-06-10" },
 ];
 
 export default function EquipmentList() {

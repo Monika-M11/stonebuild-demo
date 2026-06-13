@@ -375,6 +375,8 @@ export default function Sidebar({
 
     "/help": "Help",
     "/project": "Project",
+    "/user-access" : "User-Access",
+    "/support" : "Support"
   };
 
   // ✅ Simplified path normalization
@@ -482,7 +484,7 @@ export default function Sidebar({
         <MenuItem
           icon={<ShoppingBag size={18} />}
           label="Expense"
-          route="/expense"
+          route="/expenses"
           active={activeMenu === "Expense"}
           onClick={handleMenuClick}
         />
@@ -544,6 +546,23 @@ export default function Sidebar({
           activeMenu={activeMenu}
           onMenuClick={handleMenuClick}
           normalizedPath={normalizedPath}
+        />
+
+                <MenuItem
+          icon={<ShoppingBag size={18} />}
+          label="User Access"
+          route="/user-access"
+          active={activeMenu === "User Access"}
+          onClick={handleMenuClick}
+        />
+
+
+                <MenuItem
+          icon={<ShoppingBag size={18} />}
+          label="Support"
+          route="/support"
+          active={activeMenu === "Support"}
+          onClick={handleMenuClick}
         />
 
        

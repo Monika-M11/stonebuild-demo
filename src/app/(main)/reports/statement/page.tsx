@@ -135,9 +135,7 @@ export default function StatementPage() {
       {/* Header */}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#103BB5]">
-          Statement
-        </h1>
+       
 
         <p className="text-gray-500">
           Customer / Vendor Statement

@@ -18,7 +18,6 @@ type CashBookEntry = {
   receipt: number;
   payment: number;
 };
-
 const cashBookData: CashBookEntry[] = [
   {
     id: 1,
@@ -32,7 +31,7 @@ const cashBookData: CashBookEntry[] = [
     id: 2,
     date: "2025-07-15",
     voucherNo: "PAY-001",
-    particulars: "Labour Wages",
+    particulars: "Labour Wages - Site 1",
     receipt: 0,
     payment: 12000,
   },
@@ -40,7 +39,7 @@ const cashBookData: CashBookEntry[] = [
     id: 3,
     date: "2025-07-16",
     voucherNo: "PAY-002",
-    particulars: "Petrol Expense",
+    particulars: "Petrol & Diesel Expense",
     receipt: 0,
     payment: 2500,
   },
@@ -48,7 +47,7 @@ const cashBookData: CashBookEntry[] = [
     id: 4,
     date: "2025-07-16",
     voucherNo: "RCPT-002",
-    particulars: "Advance Received",
+    particulars: "Advance Received - Priya Sharma",
     receipt: 75000,
     payment: 0,
   },
@@ -56,7 +55,7 @@ const cashBookData: CashBookEntry[] = [
     id: 5,
     date: "2025-07-17",
     voucherNo: "PAY-003",
-    particulars: "Site Refreshments",
+    particulars: "Site Refreshments & Food",
     receipt: 0,
     payment: 1800,
   },
@@ -64,7 +63,7 @@ const cashBookData: CashBookEntry[] = [
     id: 6,
     date: "2025-07-17",
     voucherNo: "PAY-004",
-    particulars: "Labour Advance",
+    particulars: "Labour Advance Payment",
     receipt: 0,
     payment: 10000,
   },
@@ -72,8 +71,112 @@ const cashBookData: CashBookEntry[] = [
     id: 7,
     date: "2025-07-18",
     voucherNo: "RCPT-003",
-    particulars: "Project Milestone Payment",
+    particulars: "Project Milestone Payment - Ramesh Kumar",
     receipt: 120000,
+    payment: 0,
+  },
+  {
+    id: 8,
+    date: "2025-07-18",
+    voucherNo: "PAY-005",
+    particulars: "Cement Purchase",
+    receipt: 0,
+    payment: 45000,
+  },
+  {
+    id: 9,
+    date: "2025-07-19",
+    voucherNo: "RCPT-004",
+    particulars: "Client Payment - Suresh Babu",
+    receipt: 85000,
+    payment: 0,
+  },
+  {
+    id: 10,
+    date: "2025-07-19",
+    voucherNo: "PAY-006",
+    particulars: "Steel Rod Purchase",
+    receipt: 0,
+    payment: 32000,
+  },
+  {
+    id: 11,
+    date: "2025-07-20",
+    voucherNo: "PAY-007",
+    particulars: "Electrician Payment",
+    receipt: 0,
+    payment: 8500,
+  },
+  {
+    id: 12,
+    date: "2025-07-20",
+    voucherNo: "RCPT-005",
+    particulars: "Security Deposit Refund",
+    receipt: 15000,
+    payment: 0,
+  },
+  {
+    id: 13,
+    date: "2025-07-21",
+    voucherNo: "PAY-008",
+    particulars: "Transport Charges",
+    receipt: 0,
+    payment: 6800,
+  },
+  {
+    id: 14,
+    date: "2025-07-21",
+    voucherNo: "RCPT-006",
+    particulars: "Final Settlement - Lakshmi Narayanan",
+    receipt: 95000,
+    payment: 0,
+  },
+  {
+    id: 15,
+    date: "2025-07-22",
+    voucherNo: "PAY-009",
+    particulars: "Plumbing Materials",
+    receipt: 0,
+    payment: 18500,
+  },
+  {
+    id: 16,
+    date: "2025-07-22",
+    voucherNo: "RCPT-007",
+    particulars: "Advance from VK Energy",
+    receipt: 65000,
+    payment: 0,
+  },
+  {
+    id: 17,
+    date: "2025-07-23",
+    voucherNo: "PAY-010",
+    particulars: "Office Rent",
+    receipt: 0,
+    payment: 22000,
+  },
+  {
+    id: 18,
+    date: "2025-07-23",
+    voucherNo: "RCPT-008",
+    particulars: "Material Sale - Scrap",
+    receipt: 8500,
+    payment: 0,
+  },
+  {
+    id: 19,
+    date: "2025-07-24",
+    voucherNo: "PAY-011",
+    particulars: "Supervisor Salary",
+    receipt: 0,
+    payment: 15000,
+  },
+  {
+    id: 20,
+    date: "2025-07-24",
+    voucherNo: "RCPT-009",
+    particulars: "Payment from Geetha Menon",
+    receipt: 45000,
     payment: 0,
   },
 ];
@@ -133,9 +236,7 @@ export default function CashBookPage() {
       {/* Header */}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#103BB5]">
-          Cash Book
-        </h1>
+        
 
         <p className="text-gray-500">
           Cash Receipts & Payments Register

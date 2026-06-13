@@ -19,7 +19,6 @@ type Stock = {
   availableQty: number;
   minimumQty: number;
 };
-
 const initialStockData: Stock[] = [
   {
     id: 1,
@@ -68,6 +67,198 @@ const initialStockData: Stock[] = [
     unit: "Loads",
     availableQty: 2,
     minimumQty: 5,
+  },
+  {
+    id: 7,
+    materialName: "Coarse Aggregate",
+    category: "Raw Material",
+    unit: "Loads",
+    availableQty: 8,
+    minimumQty: 5,
+  },
+  {
+    id: 8,
+    materialName: "Fine Aggregate",
+    category: "Raw Material",
+    unit: "Loads",
+    availableQty: 4,
+    minimumQty: 5,
+  },
+  {
+    id: 9,
+    materialName: "Concrete Blocks",
+    category: "Construction",
+    unit: "Nos",
+    availableQty: 3500,
+    minimumQty: 1500,
+  },
+  {
+    id: 10,
+    materialName: "PVC Pipes",
+    category: "Plumbing",
+    unit: "Nos",
+    availableQty: 150,
+    minimumQty: 75,
+  },
+  {
+    id: 11,
+    materialName: "CPVC Pipes",
+    category: "Plumbing",
+    unit: "Nos",
+    availableQty: 60,
+    minimumQty: 50,
+  },
+  {
+    id: 12,
+    materialName: "Electrical Wire",
+    category: "Electrical",
+    unit: "Rolls",
+    availableQty: 40,
+    minimumQty: 20,
+  },
+  {
+    id: 13,
+    materialName: "Switch Boards",
+    category: "Electrical",
+    unit: "Nos",
+    availableQty: 75,
+    minimumQty: 40,
+  },
+  {
+    id: 14,
+    materialName: "Paint Bucket 20L",
+    category: "Finishing",
+    unit: "Buckets",
+    availableQty: 32,
+    minimumQty: 15,
+  },
+  {
+    id: 15,
+    materialName: "Wall Putty",
+    category: "Finishing",
+    unit: "Bags",
+    availableQty: 120,
+    minimumQty: 50,
+  },
+  {
+    id: 16,
+    materialName: "Ceramic Tiles",
+    category: "Finishing",
+    unit: "Boxes",
+    availableQty: 95,
+    minimumQty: 50,
+  },
+  {
+    id: 17,
+    materialName: "Granite Slabs",
+    category: "Finishing",
+    unit: "Nos",
+    availableQty: 18,
+    minimumQty: 10,
+  },
+  {
+    id: 18,
+    materialName: "Wooden Doors",
+    category: "Carpentry",
+    unit: "Nos",
+    availableQty: 22,
+    minimumQty: 15,
+  },
+  {
+    id: 19,
+    materialName: "Window Frames",
+    category: "Carpentry",
+    unit: "Nos",
+    availableQty: 14,
+    minimumQty: 10,
+  },
+  {
+    id: 20,
+    materialName: "Plywood Sheets",
+    category: "Carpentry",
+    unit: "Sheets",
+    availableQty: 48,
+    minimumQty: 25,
+  },
+  {
+    id: 21,
+    materialName: "Binding Wire",
+    category: "Construction",
+    unit: "Kg",
+    availableQty: 180,
+    minimumQty: 100,
+  },
+  {
+    id: 22,
+    materialName: "TMT Bar 12mm",
+    category: "Construction",
+    unit: "Nos",
+    availableQty: 320,
+    minimumQty: 150,
+  },
+  {
+    id: 23,
+    materialName: "TMT Bar 16mm",
+    category: "Construction",
+    unit: "Nos",
+    availableQty: 110,
+    minimumQty: 100,
+  },
+  {
+    id: 24,
+    materialName: "Ready Mix Concrete",
+    category: "Construction",
+    unit: "Loads",
+    availableQty: 6,
+    minimumQty: 3,
+  },
+  {
+    id: 25,
+    materialName: "Water Tank 1000L",
+    category: "Plumbing",
+    unit: "Nos",
+    availableQty: 9,
+    minimumQty: 5,
+  },
+  {
+    id: 26,
+    materialName: "Wash Basin",
+    category: "Plumbing",
+    unit: "Nos",
+    availableQty: 30,
+    minimumQty: 15,
+  },
+  {
+    id: 27,
+    materialName: "LED Flood Light",
+    category: "Electrical",
+    unit: "Nos",
+    availableQty: 25,
+    minimumQty: 20,
+  },
+  {
+    id: 28,
+    materialName: "Roofing Sheet",
+    category: "Construction",
+    unit: "Sheets",
+    availableQty: 70,
+    minimumQty: 30,
+  },
+  {
+    id: 29,
+    materialName: "Glass Panel",
+    category: "Finishing",
+    unit: "Nos",
+    availableQty: 16,
+    minimumQty: 10,
+  },
+  {
+    id: 30,
+    materialName: "Safety Helmet",
+    category: "Safety",
+    unit: "Nos",
+    availableQty: 45,
+    minimumQty: 25,
   },
 ];
 
@@ -172,9 +363,7 @@ export default function StocksPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-5">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#103BB5]">
-          Stocks
-        </h1>
+       
 
         <p className="text-gray-500">
           Material Inventory Management
