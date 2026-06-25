@@ -1,6 +1,170 @@
-//  "use client";
+// //  "use client";
 
-// import { useState } from "react";
+// // import { useState } from "react";
+// // import { useRouter } from "next/navigation";
+// // import { FormProvider, useForm } from "react-hook-form";
+
+// // import DynamicField from "@/components/ui/fields/dynamicField";
+// // import { Button } from "@/components/ui/button";
+
+// // import Loader from "@/components/ui/loader";
+// // import { Toaster } from "@/components/ui/toaster";
+
+// // import { apiRequest } from "@/lib/api";
+
+// // type LoginForm = {
+// //   username: string;
+// //   password: string;
+// // };
+
+// // type FieldWrapperProps = {
+// //   label: string;
+// //   children: React.ReactNode;
+// // };
+
+// // function FieldWrapper({
+// //   label,
+// //   children,
+// // }: FieldWrapperProps) {
+// //   return (
+// //     <div className="space-y-2">
+// //       <label className="form-label">{label}</label>
+// //       {children}
+// //     </div>
+// //   );
+// // }
+
+// // export default function LoginPage() {
+// //   const router = useRouter();
+
+// //   const [loading, setLoading] = useState(false);
+
+// //   const [toast, setToast] = useState<{
+// //     message: string;
+// //     type: "success" | "error";
+// //   } | null>(null);
+
+// //   const methods = useForm<LoginForm>({
+// //     defaultValues: {
+// //       username: "",
+// //       password: "",
+// //     },
+// //   });
+
+// //   const onSubmit = async (data: LoginForm) => {
+// //     try {
+// //       setLoading(true);
+
+// //       const response = await apiRequest({
+// //         endpoint: "LOGIN",
+// //         data,
+// //       });
+
+// //       setToast({
+// //         message: response.message || "Login Success",
+// //         type: "success",
+// //       });
+
+// //       // Save token if available
+// //       if (response.data.token) {
+// //         localStorage.setItem("token", response.token);
+// //       }
+
+// //       // Redirect after login
+// //       setTimeout(() => {
+// //         router.push("/dashboard");
+// //       }, 1000);
+
+// //     } catch (error: any) {
+
+// //       setToast({
+// //         message: error.message || "Login Failed",
+// //         type: "error",
+// //       });
+
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   return (
+// //     <>
+// //       {loading && <Loader />}
+
+// //       {toast && (
+// //         <Toaster
+// //           message={toast.message}
+// //           type={toast.type}
+// //           onClose={() => setToast(null)}
+// //         />
+// //       )}
+
+// //       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        
+// //         <div className="bg-white rounded-2xl shadow-xl p-8 w-full min-w-[400]  max-w-[400]">
+
+// //           <h2 className="text-3xl font-bold text-[#103BB5] mb-6">
+// //             Login
+// //           </h2>
+
+// //           <FormProvider {...methods}>
+// //             <form
+// //               onSubmit={methods.handleSubmit(onSubmit)}
+// //               className="space-y-5"
+// //             >
+
+// //               <FieldWrapper label="Username">
+// //                 <DynamicField
+// //                   name="username"
+// //                   type="input"
+// //                   placeholder="Enter Username"
+// //                   required
+// //                 />
+// //               </FieldWrapper>
+
+// //               <FieldWrapper label="Password">
+// //                 <DynamicField
+// //                   name="password"
+// //                   type="input"
+// //                   placeholder="Enter Password"
+// //                   required
+// //                   validationType="password"
+// //                 />
+// //               </FieldWrapper>
+
+// //               <Button
+// //                 type="submit"
+// //                 className="w-full bg-[#103BB5]"
+// //               >
+// //                 Login
+// //               </Button>
+
+// //               <div className="text-center text-sm text-gray-600">
+// //                 Don't have an account?{" "}
+
+// //                 <button
+// //                   type="button"
+// //                   onClick={() => router.push("/signup")}
+// //                   className="text-[#103BB5] font-medium hover:underline"
+// //                 >
+// //                   Create Account
+// //                 </button>
+// //               </div>
+
+// //             </form>
+// //           </FormProvider>
+
+// //         </div>
+
+// //       </div>
+// //     </>
+// //   );
+// // }
+
+
+// "use client";
+
+// import { useState, useEffect } from "react";
 // import { useRouter } from "next/navigation";
 // import { FormProvider, useForm } from "react-hook-form";
 
@@ -9,8 +173,6 @@
 
 // import Loader from "@/components/ui/loader";
 // import { Toaster } from "@/components/ui/toaster";
-
-// import { apiRequest } from "@/lib/api";
 
 // type LoginForm = {
 //   username: string;
@@ -36,9 +198,7 @@
 
 // export default function LoginPage() {
 //   const router = useRouter();
-
 //   const [loading, setLoading] = useState(false);
-
 //   const [toast, setToast] = useState<{
 //     message: string;
 //     type: "success" | "error";
@@ -51,41 +211,38 @@
 //     },
 //   });
 
-//   const onSubmit = async (data: LoginForm) => {
-//     try {
-//       setLoading(true);
+// const onSubmit = async (data: LoginForm) => {
+//   try {
+//     setLoading(true);
 
-//       const response = await apiRequest({
-//         endpoint: "LOGIN",
-//         data,
-//       });
+//     await new Promise(resolve => setTimeout(resolve, 800));
 
-//       setToast({
-//         message: response.message || "Login Success",
-//         type: "success",
-//       });
+//     // Save fake token
+//     localStorage.setItem("token", "demo-token-12345");
 
-//       // Save token if available
-//       if (response.data.token) {
-//         localStorage.setItem("token", response.token);
-//       }
+//     setToast({
+//       message: "Login successful!",
+//       type: "success",
+//     });
 
-//       // Redirect after login
-//       setTimeout(() => {
-//         router.push("/dashboard");
-//       }, 1000);
+//     setTimeout(() => {
+//       router.push("/dashboard");
+//     }, 1600);
 
-//     } catch (error: any) {
+//   } catch (error) {
+//     setToast({
+//       message: "Login failed. Please try again.",
+//       type: "error",
+//     });
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-//       setToast({
-//         message: error.message || "Login Failed",
-//         type: "error",
-//       });
-
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+//   // Debug: Check if router is working
+//   useEffect(() => {
+//     console.log("Router is ready:", router);
+//   }, [router]);
 
 //   return (
 //     <>
@@ -100,9 +257,7 @@
 //       )}
 
 //       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        
-//         <div className="bg-white rounded-2xl shadow-xl p-8 w-full min-w-[400]  max-w-[400]">
-
+//         <div className="bg-white rounded-2xl shadow-xl p-8 w-full min-w-[400px] max-w-[400px]">
 //           <h2 className="text-3xl font-bold text-[#103BB5] mb-6">
 //             Login
 //           </h2>
@@ -112,7 +267,6 @@
 //               onSubmit={methods.handleSubmit(onSubmit)}
 //               className="space-y-5"
 //             >
-
 //               <FieldWrapper label="Username">
 //                 <DynamicField
 //                   name="username"
@@ -141,7 +295,6 @@
 
 //               <div className="text-center text-sm text-gray-600">
 //                 Don't have an account?{" "}
-
 //                 <button
 //                   type="button"
 //                   onClick={() => router.push("/signup")}
@@ -150,29 +303,32 @@
 //                   Create Account
 //                 </button>
 //               </div>
-
 //             </form>
 //           </FormProvider>
-
 //         </div>
-
 //       </div>
 //     </>
 //   );
 // }
 
 
+
+
+
+
+
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, SubmitHandler } from "react-hook-form";
 
 import DynamicField from "@/components/ui/fields/dynamicField";
 import { Button } from "@/components/ui/button";
-
 import Loader from "@/components/ui/loader";
 import { Toaster } from "@/components/ui/toaster";
+import { postAPI } from "@/app/utils/api";
 
 type LoginForm = {
   username: string;
@@ -184,10 +340,7 @@ type FieldWrapperProps = {
   children: React.ReactNode;
 };
 
-function FieldWrapper({
-  label,
-  children,
-}: FieldWrapperProps) {
+function FieldWrapper({ label, children }: FieldWrapperProps) {
   return (
     <div className="space-y-2">
       <label className="form-label">{label}</label>
@@ -199,6 +352,7 @@ function FieldWrapper({
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -211,38 +365,48 @@ export default function LoginPage() {
     },
   });
 
-const onSubmit = async (data: LoginForm) => {
-  try {
+  const onSubmit: SubmitHandler<LoginForm> = async (data) => {
     setLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const payload = {
+        username: data.username,
+        password: data.password,
+      };
 
-    // Save fake token
-    localStorage.setItem("token", "demo-token-12345");
+      const response = await postAPI("LOGIN", payload, false); // false = no auth needed for login
 
-    setToast({
-      message: "Login successful!",
-      type: "success",
-    });
+      setToast({
+        message: response.message || "Login successful",
+        type: "success",
+      });
 
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1600);
+      // Save token & user data
+     if (response.data?.token) {
+  localStorage.setItem("token", response.data.token);
+}
 
-  } catch (error) {
-    setToast({
-      message: "Login failed. Please try again.",
-      type: "error",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+if (response.data) {
+  localStorage.setItem("user", JSON.stringify(response.data));
+}
 
-  // Debug: Check if router is working
-  useEffect(() => {
-    console.log("Router is ready:", router);
-  }, [router]);
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1200);
+
+    } catch (error: any) {
+      console.error(error);
+      setToast({
+        message: error.message || "Invalid credentials. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToastClose = () => setToast(null);
 
   return (
     <>
@@ -252,27 +416,24 @@ const onSubmit = async (data: LoginForm) => {
         <Toaster
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={handleToastClose}
         />
       )}
 
       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 w-full min-w-[400px] max-w-[400px]">
-          <h2 className="text-3xl font-bold text-[#103BB5] mb-6">
+          <h2 className="text-3xl font-bold text-[#103BB5] mb-6 text-center">
             Login
           </h2>
 
           <FormProvider {...methods}>
-            <form
-              onSubmit={methods.handleSubmit(onSubmit)}
-              className="space-y-5"
-            >
+            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
               <FieldWrapper label="Username">
                 <DynamicField
                   name="username"
                   type="input"
                   placeholder="Enter Username"
-                  required
+                  validation={{ required: "Username is required" }}
                 />
               </FieldWrapper>
 
@@ -281,16 +442,13 @@ const onSubmit = async (data: LoginForm) => {
                   name="password"
                   type="input"
                   placeholder="Enter Password"
-                  required
                   validationType="password"
+                  validation={{ required: "Password is required" }}
                 />
               </FieldWrapper>
 
-              <Button
-                type="submit"
-                className="w-full bg-[#103BB5]"
-              >
-                Login
+              <Button type="submit" className="w-full bg-[#103BB5]" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
               </Button>
 
               <div className="text-center text-sm text-gray-600">

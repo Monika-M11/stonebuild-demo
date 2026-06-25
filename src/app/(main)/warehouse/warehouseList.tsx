@@ -203,10 +203,11 @@ type Warehouse = {
   created_at: string;
 };
 
+
 const dummyWarehouses: Warehouse[] = [
   {
     id: "1",
-    warehouse_name: "Main Gold Warehouse",
+    warehouse_name: "Chennai Central Material Yard",
     phone: "9876543210",
     address: "123 MG Road, Chennai",
     pincode: "600001",
@@ -215,7 +216,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "2",
-    warehouse_name: "Bangalore Diamond Hub",
+    warehouse_name: "Bangalore Heavy Machinery Hub",
     phone: "9123456789",
     address: "45 Brigade Road, Bangalore",
     pincode: "560001",
@@ -224,7 +225,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "3",
-    warehouse_name: "Coimbatore Jewellery Store",
+    warehouse_name: "Coimbatore Concrete & Aggregate Store",
     phone: "9988776655",
     address: "78 RS Puram, Coimbatore",
     pincode: "641002",
@@ -233,7 +234,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "4",
-    warehouse_name: "Hyderabad Gem Vault",
+    warehouse_name: "Hyderabad Structural Steel Vault",
     phone: "9871234567",
     address: "22 Banjara Hills, Hyderabad",
     pincode: "500034",
@@ -242,7 +243,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "5",
-    warehouse_name: "Mumbai Bullion Center",
+    warehouse_name: "Mumbai Cement Bullion Center",
     phone: "9345678901",
     address: "Zaveri Bazaar, Mumbai",
     pincode: "400002",
@@ -251,7 +252,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "6",
-    warehouse_name: "Chennai Silver Depot",
+    warehouse_name: "Chennai Electrical & Piping Depot",
     phone: "9178901234",
     address: "T Nagar, Chennai",
     pincode: "600017",
@@ -260,7 +261,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "7",
-    warehouse_name: "Kochi Maritime Warehouse",
+    warehouse_name: "Kochi Maritime Equipment Yard",
     phone: "9823456789",
     address: "MG Road, Kochi",
     pincode: "682011",
@@ -269,7 +270,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "8",
-    warehouse_name: "Ahmedabad Gold Market",
+    warehouse_name: "Ahmedabad Brick & Block Market",
     phone: "9898765432",
     address: "Manek Chowk, Ahmedabad",
     pincode: "380001",
@@ -278,7 +279,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "9",
-    warehouse_name: "Delhi NCR Vault",
+    warehouse_name: "Delhi NCR Scaffolding Vault",
     phone: "9012345678",
     address: "Karol Bagh, New Delhi",
     pincode: "110005",
@@ -287,7 +288,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "10",
-    warehouse_name: "Jaipur Gemstone Warehouse",
+    warehouse_name: "Jaipur Marble & Stone Warehouse",
     phone: "9567890123",
     address: "Johari Bazaar, Jaipur",
     pincode: "302003",
@@ -296,7 +297,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "11",
-    warehouse_name: "Kolkata Silver Hub",
+    warehouse_name: "Kolkata Rebar & TMT Hub",
     phone: "9876540987",
     address: "Burrabazar, Kolkata",
     pincode: "700007",
@@ -305,7 +306,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "12",
-    warehouse_name: "Pune Jewellery Park",
+    warehouse_name: "Pune Plumbing & HVAC Park",
     phone: "9123459876",
     address: "FC Road, Pune",
     pincode: "411016",
@@ -314,7 +315,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "13",
-    warehouse_name: "Surat Diamond Zone",
+    warehouse_name: "Surat Precast Diamond Zone",
     phone: "9988771122",
     address: "Ring Road, Surat",
     pincode: "395002",
@@ -323,7 +324,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "14",
-    warehouse_name: "Lucknow Pearl Warehouse",
+    warehouse_name: "Lucknow Finishing Materials Warehouse",
     phone: "9345678902",
     address: "Hazratganj, Lucknow",
     pincode: "226001",
@@ -332,7 +333,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "15",
-    warehouse_name: "Indore Bullion House",
+    warehouse_name: "Indore Infrastructure Bullion House",
     phone: "9871234568",
     address: "MG Road, Indore",
     pincode: "452001",
@@ -341,7 +342,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "16",
-    warehouse_name: "Vizag Port Warehouse",
+    warehouse_name: "Vizag Port Logistics Yard",
     phone: "9567890124",
     address: "Harbour Area, Visakhapatnam",
     pincode: "530001",
@@ -350,7 +351,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "17",
-    warehouse_name: "Patna Regional Store",
+    warehouse_name: "Patna Regional Tools Store",
     phone: "9823456790",
     address: "Boring Road, Patna",
     pincode: "800001",
@@ -359,7 +360,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "18",
-    warehouse_name: "Bhubaneswar Gold Vault",
+    warehouse_name: "Bhubaneswar Safety Gear Vault",
     phone: "9898765433",
     address: "Unit 4, Bhubaneswar",
     pincode: "751001",
@@ -368,7 +369,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "19",
-    warehouse_name: "Guwahati Northeast Depot",
+    warehouse_name: "Guwahati Northeast Lumber Depot",
     phone: "9012345679",
     address: "Fancy Bazaar, Guwahati",
     pincode: "781001",
@@ -377,7 +378,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "20",
-    warehouse_name: "Thiruvananthapuram Store",
+    warehouse_name: "Thiruvananthapuram Roofing Store",
     phone: "9567890125",
     address: "MG Road, Trivandrum",
     pincode: "695001",
@@ -386,7 +387,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "21",
-    warehouse_name: "Nagpur Orange City Vault",
+    warehouse_name: "Nagpur Drywall & Gypsum Vault",
     phone: "9876543211",
     address: "Sitabuldi, Nagpur",
     pincode: "440012",
@@ -395,7 +396,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "22",
-    warehouse_name: "Amritsar Golden Temple Depot",
+    warehouse_name: "Amritsar Earthmoving Equipment Depot",
     phone: "9123456780",
     address: "Hall Bazaar, Amritsar",
     pincode: "143001",
@@ -404,7 +405,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "23",
-    warehouse_name: "Raipur Chhattisgarh Hub",
+    warehouse_name: "Raipur Chhattisgarh Mining Hub",
     phone: "9988776656",
     address: "MG Road, Raipur",
     pincode: "492001",
@@ -413,7 +414,7 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "24",
-    warehouse_name: "Ranchi Jharkhand Store",
+    warehouse_name: "Ranchi Jharkhand Cement Store",
     phone: "9345678910",
     address: "Lalpur, Ranchi",
     pincode: "834001",
@@ -422,15 +423,15 @@ const dummyWarehouses: Warehouse[] = [
   },
   {
     id: "25",
-    warehouse_name: "Dehradun Valley Warehouse",
+    warehouse_name: "Dehradun Valley Asphalt Warehouse",
     phone: "9871234570",
     address: "Rajpur Road, Dehradun",
     pincode: "248001",
     state: "Uttarakhand",
     created_at: "2025-06-25",
   },
-
 ];
+
 
 export default function WarehouseList() {
   const [warehouseList, setWarehouseList] = useState<Warehouse[]>(dummyWarehouses);

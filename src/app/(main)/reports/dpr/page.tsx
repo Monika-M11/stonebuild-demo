@@ -110,9 +110,9 @@ export default function DPRPage() {
       {/* Header */}
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#103BB5]">
+        {/* <h1 className="text-3xl font-bold text-[#103BB5]">
           Daily Progress Report
-        </h1>
+        </h1> */}
 
         <p className="text-gray-500">
           Generate DPR Reports

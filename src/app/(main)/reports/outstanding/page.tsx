@@ -18,7 +18,6 @@ type OutstandingEntry = {
   outstandingAmount: number;
   lastTransactionDate: string;
 };
-
 const outstandingData: OutstandingEntry[] = [
   {
     id: 1,
@@ -74,7 +73,89 @@ const outstandingData: OutstandingEntry[] = [
     outstandingAmount: 20000,
     lastTransactionDate: "2025-07-22",
   },
+  {
+    id: 7,
+    partyName: "Karthik Earthmovers",
+    type: "Payable",
+    phone: "9123456781",
+    city: "Tiruppur",
+    outstandingAmount: 27000,
+    lastTransactionDate: "2025-07-28",
+  },
+  {
+    id: 8,
+    partyName: "Priya Enterprises",
+    type: "Receivable",
+    phone: "9345678905",
+    city: "Trichy",
+    outstandingAmount: 15000,
+    lastTransactionDate: "2025-07-25",
+  },
+  {
+    id: 9,
+    partyName: "Shiva Electricals",
+    type: "Payable",
+    phone: "9871234571",
+    city: "Tirunelveli",
+    outstandingAmount: 0,
+    lastTransactionDate: "2025-08-03",
+  },
+  {
+    id: 10,
+    partyName: "SafeGuard Solutions",
+    type: "Payable",
+    phone: "9012345681",
+    city: "Chennai",
+    outstandingAmount: 0,
+    lastTransactionDate: "2025-08-08",
+  },
+  {
+    id: 11,
+    partyName: "Vidhya Foundations",
+    type: "Receivable",
+    phone: "9865432109",
+    city: "Bangalore",
+    outstandingAmount: 340000,
+    lastTransactionDate: "2025-08-12",
+  },
+  {
+    id: 12,
+    partyName: "Kavin Brick Works",
+    type: "Payable",
+    phone: "9488877766",
+    city: "Hosur",
+    outstandingAmount: 52000,
+    lastTransactionDate: "2025-08-14",
+  },
+  {
+    id: 13,
+    partyName: "Apex ReadyMix Concrete",
+    type: "Payable",
+    phone: "9944332211",
+    city: "Coimbatore",
+    outstandingAmount: 115000,
+    lastTransactionDate: "2025-08-15",
+  },
+  {
+    id: 14,
+    partyName: "Elite Infrastructure",
+    type: "Receivable",
+    phone: "9500112233",
+    city: "Hyderabad",
+    outstandingAmount: 89000,
+    lastTransactionDate: "2025-08-18",
+  },
+  {
+    id: 15,
+    partyName: "Senthil Plumbing & Hardware",
+    type: "Payable",
+    phone: "9755443322",
+    city: "Vellore",
+    outstandingAmount: 18500,
+    lastTransactionDate: "2025-08-19",
+  },
 ];
+
 
 export default function OutstandingPage() {
   const [search, setSearch] = useState("");

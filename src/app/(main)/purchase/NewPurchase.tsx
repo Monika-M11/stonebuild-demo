@@ -416,30 +416,31 @@ export default function PurchaseForm() {
 
   // Dummy Options
   const supplierOptions: Option[] = [
-    { label: "Ramesh Kumar Jewellers", value: "sup1" },
-    { label: "Priya Gems & Co", value: "sup2" },
-    { label: "Suresh Bullion", value: "sup3" },
-    { label: "Lakshmi Gold Traders", value: "sup4" },
-    { label: "Vijay Diamond House", value: "sup5" },
+    { label: "UltraTech Cement Distributors", value: "sup1" },
+    { label: "Tata Steel Logistics", value: "sup2" },
+    { label: "L&T Heavy Machinery Rentals", value: "sup3" },
+    { label: "JSW Neo Steel Traders", value: "sup4" },
+    { label: "Ambuja ReadyMix Concrete", value: "sup5" },
   ];
 
   const materialOptions: Option[] = [
-    { label: "24K Gold", value: "mat1" },
-    { label: "22K Gold", value: "mat2" },
-    { label: "Silver 999", value: "mat3" },
-    { label: "Platinum", value: "mat4" },
-    { label: "Diamond (0.5ct)", value: "mat5" },
-    { label: "Ruby Stone", value: "mat6" },
-    { label: "Emerald", value: "mat7" },
+    { label: "OPC 53 Grade Cement", value: "mat1" },
+    { label: "TMT Steel Rebars (Fe 550D)", value: "mat2" },
+    { label: "Crushed Coarse Aggregate (20mm)", value: "mat3" },
+    { label: "M-Sand (Manufacturing Sand)", value: "mat4" },
+    { label: "Ready-Mix Concrete (M25)", value: "mat5" },
+    { label: "Fly Ash Bricks", value: "mat6" },
+    { label: "PVC Conduit Pipes", value: "mat7" },
   ];
 
   const unitOptions: Option[] = [
-    { label: "Gram", value: "u1" },
-    { label: "Tola", value: "u2" },
-    { label: "Carat", value: "u3" },
+    { label: "Bag", value: "u1" },
+    { label: "Ton", value: "u2" },
+    { label: "Brass", value: "u3" },
     { label: "Kg", value: "u4" },
     { label: "Piece", value: "u5" },
   ];
+
 
   // Field Arrays
   const {
