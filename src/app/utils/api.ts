@@ -93,7 +93,16 @@ export const API_ENDPOINTS = {
   ADD_EQUIPMENT:"",
   EQUIPMENT_LIST:"",
   GET_WAREHOUSE_BY_ID:"",
-  WAREHOUSE_LIST:""
+  WAREHOUSE_LIST:"",
+  PURCHASE_LIST:"",
+  ADD_PURCHASE:"",
+  ADD_EXPENSE:"",
+  EXPENSE_LIST:"",
+  ADD_QUOTATION:"",
+  QUOTATION_LIST:"",
+  LEAD_LIST:"",
+  ADD_LEAD:"",
+  ATTENDANCE_LIST:""
 } as const;
 
 export type EndpointKey = keyof typeof API_ENDPOINTS;
