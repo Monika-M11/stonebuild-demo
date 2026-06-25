@@ -1,12 +1,14 @@
-//  "use client";
 
-// import { useForm, FormProvider, SubmitHandler, useFieldArray } from "react-hook-form";
-// import { FormField } from "../utils/formField";
+
+// "use client";
+
+// import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
+// import { FormField } from "@/app/utils/dynamicField";
 // import { Button } from "@/components/ui/button";
-// import { postRequest } from "../utils/api";
 // import { useState, useMemo, useEffect } from "react";
-// import toast from "react-hot-toast";
-// import ConfirmModal from "../utils/confirmationModal";
+// import { format } from "date-fns";
+// import ConfirmModal from "@/app/utils/confirmationModal";
+// import { Toaster } from "@/components/ui/toaster";
 
 // type Option = { label: string; value: string };
 
@@ -23,6 +25,15 @@
 //   additional_units: AdditionalUnit[];
 // };
 
+// const dummyUnitOptions: Option[] = [
+//   { label: "Gram", value: "1" },
+//   { label: "Kilogram", value: "2" },
+//   { label: "Piece", value: "3" },
+//   { label: "Tola", value: "4" },
+//   { label: "Carat", value: "5" },
+//   { label: "Ounce", value: "6" },
+// ];
+
 // export default function MaterialForm() {
 //   const methods = useForm<FormValues>({
 //     defaultValues: {
@@ -32,94 +43,54 @@
 //       main_unit: null,
 //       additional_units: [],
 //     },
+//     mode: "onSubmit",
 //   });
 
-//   // unit options come ONLY from API
-//   const [unitOptions, setUnitOptions] = useState<Option[]>([]);
-//   const [isUnitsLoading, setIsUnitsLoading] = useState<boolean>(true);
+//   const [unitOptions] = useState<Option[]>(dummyUnitOptions);
+//   const [loading, setLoading] = useState(false);
+//   const [showConfirm, setShowConfirm] = useState(false);
+//   const [formData, setFormData] = useState<FormValues | null>(null);
+//   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-//   // existing category state (unchanged)
-//   const [categoryOptions, setCategoryOptions] = useState<{ label: string; value: string }[]>([]);
-
-//   // fetch units from backend and set as opts (no defaults)
-//   const fetchUnits = async () => {
-//     setIsUnitsLoading(true);
-//     try {
-//       const payload = {
-//        token: "getLedgerType",
-//         data: { ledger_type: "unit_ledger" },
-//       };
-//       const res = await postRequest(payload);
-//       if (res && res.success && Array.isArray(res.data)) {
-//         const opts = res.data.map((u: any) => ({
-//           label: u.ledger_name ??String(u.value ?? ""),
-//           value: String(u.id ??""),
-//         }));
-//         setUnitOptions(opts);
-//       } else {
-//         // API returned non-success or non-array -> empty options
-//         setUnitOptions([]);
-//         toast.error("Units API returned no data.");
-//       }
-//     } catch (err) {
-//       setUnitOptions([]);
-//       toast.error("Failed to load units from API ❌");
-//     } finally {
-//       setIsUnitsLoading(false);
-//     }
+//   const showToast = (message: string, type: "success" | "error" = "success") => {
+//     setToast({ message, type });
+//     setTimeout(() => setToast(null), 2500);
 //   };
 
-   
+//   const { control, watch, setValue, reset } = methods;
 
-//   useEffect(() => {
-//     fetchUnits();
-   
-//   }, []);
-
-//   const { control, watch, setValue } = methods;
 //   const { fields, append, remove } = useFieldArray({
 //     control,
 //     name: "additional_units",
 //   });
 
-//   const [loading, setLoading] = useState(false);
-//   const [showConfirm, setShowConfirm] = useState(false);
-//   const [formData, setFormData] = useState<FormValues | null>(null);
+//   const watchedMainUnit = watch("main_unit");
+//   const watchedAdditional = watch("additional_units") || [];
 
-//   const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
-//     setFormData(data);
-//     setShowConfirm(true);
-//   };
-
-//   // Normalizer
-//   const getUnitValue = (u: Option | string | null | undefined) => {
+//   const getUnitValue = (u: Option | string | null | undefined): string | null => {
 //     if (!u) return null;
 //     if (typeof u === "string") return u;
 //     return (u as Option).value ?? null;
 //   };
 
-//   // Watchers
-//   const watchedMainUnit = watch("main_unit");
-//   const watchedAdditional = watch("additional_units") || [];
 //   const watchedMainUnitVal = getUnitValue(watchedMainUnit);
 
-//   // Clear duplicate additional units when main changes
+//   // Clear duplicate units
 //   useEffect(() => {
 //     if (!watchedMainUnitVal) return;
-//     (watchedAdditional || []).forEach((a: AdditionalUnit, i: number) => {
-//       const aVal = getUnitValue(a?.unit);
-//       if (aVal === watchedMainUnitVal) {
-//         setValue(`additional_units.${i}.unit`, null, { shouldDirty: true, shouldTouch: true });
+
+//     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
+//       if (getUnitValue(a?.unit) === watchedMainUnitVal) {
+//         setValue(`additional_units.${i}.unit`, null);
 //       }
 //     });
 //   }, [watchedMainUnitVal, watchedAdditional, setValue]);
 
-//   // Filtered options for a given additional-unit row (exclude main and other selected additional units)
 //   const getOptionsForRow = (rowIndex: number): Option[] => {
 //     const exclude = new Set<string>();
 //     if (watchedMainUnitVal) exclude.add(watchedMainUnitVal);
 
-//     (watchedAdditional || []).forEach((a: AdditionalUnit, i: number) => {
+//     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
 //       const v = getUnitValue(a?.unit);
 //       if (v && i !== rowIndex) exclude.add(v);
 //     });
@@ -127,23 +98,16 @@
 //     return unitOptions.filter((u) => !exclude.has(u.value));
 //   };
 
-//   const totalAdditional = useMemo(
-//     () =>
-//       (watchedAdditional || []).filter((a: AdditionalUnit) => !!getUnitValue(a?.unit)).length,
-//     [watchedAdditional]
-//   );
-
-//   // Can't add unless units loaded and main is selected and there remain unselected units
 //   const canAddMoreUnits = () => {
-//     if (isUnitsLoading) return false;
-//     if (!watchedMainUnitVal) return false;
-//     const selectedUnits = new Set<string>();
-//     selectedUnits.add(watchedMainUnitVal);
-//     (watchedAdditional || []).forEach((a: AdditionalUnit) => {
+//     const selected = new Set<string>();
+//     if (watchedMainUnitVal) selected.add(watchedMainUnitVal);
+
+//     watchedAdditional.forEach((a: AdditionalUnit) => {
 //       const v = getUnitValue(a?.unit);
-//       if (v) selectedUnits.add(v);
+//       if (v) selected.add(v);
 //     });
-//     return selectedUnits.size < unitOptions.length;
+
+//     return selected.size < unitOptions.length;
 //   };
 
 //   const handleAppendUnit = () => {
@@ -151,35 +115,23 @@
 //     append({ unit: null, quantity: "" });
 //   };
 
+//   const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
+//     setFormData(data);
+//     setShowConfirm(true);
+//   };
+
 //   const confirmSubmit = async () => {
 //     if (!formData) return;
 //     setLoading(true);
-//     try {
-//       const payload = {
-//         token: "addMaterial",
-//         data: {
-//           material_name: formData.material_name,
-//           short_code: formData.short_code,
-//           hsn: formData.hsn,
-//           main_unit_id: formData.main_unit ? getUnitValue(formData.main_unit) : null,
-//           additional_units: (formData.additional_units || [])
-//             .map((a) => ({
-//               unit_id: getUnitValue(a.unit),
-//               quantity: a.quantity,
-//             }))
-//             .filter((a) => a.unit_id && a.quantity !== ""),
-//         },
-//       };
 
-//       const res = await postRequest(payload);
-//       if (res.success) {
-//         toast.success("Material added successfully ✅");
-//         methods.reset();
-//       } else {
-//         toast.error(res.message || "Failed to add material ❌");
-//       }
-//     } catch (err: any) {
-//       toast.error(err?.message || "Something went wrong ❌");
+//     try {
+//       await new Promise((resolve) => setTimeout(resolve, 800));
+
+//       showToast("Material added successfully");
+
+//       reset(); // Reset form after success
+//     } catch (err) {
+//       showToast("Something went wrongS", "error");
 //     } finally {
 //       setLoading(false);
 //       setShowConfirm(false);
@@ -188,7 +140,7 @@
 //   };
 
 //   const handleCancel = () => {
-//     methods.reset();
+//     reset();
 //     setFormData(null);
 //     setShowConfirm(false);
 //   };
@@ -202,10 +154,19 @@
 
 //   return (
 //     <FormProvider {...methods}>
+//       {/* Custom Toast */}
+//       {toast && (
+//         <Toaster
+//           message={toast.message}
+//           type={toast.type}
+//           onClose={() => setToast(null)}
+//         />
+//       )}
+
 //       <div className="flex flex-col bg-white py-6">
 //         <div className="flex-1 max-h-[calc(100vh-180px)] overflow-y-auto px-3 pb-32">
 //           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-//             {/* LEFT — material basic details */}
+//             {/* Left Column */}
 //             <div className="space-y-6">
 //               <h2 className="text-lg font-medium text-[#103BB5] mb-2">Material Details</h2>
 //               <div className="space-y-4">
@@ -240,83 +201,52 @@
 //                   <FormField
 //                     type="typeahead"
 //                     name="main_unit"
-//                     placeholder={isUnitsLoading ? "Loading units..." : "Select main unit"}
+//                     placeholder="Select main unit"
 //                     options={unitOptions}
 //                     validation={{ required: "Main unit is required" }}
-//                     disabled={isUnitsLoading || loading}
 //                   />
 //                 </Row>
 //               </div>
 //             </div>
 
-//             {/* RIGHT — Additional Units (multiple) */}
+//             {/* Right Column - Additional Units */}
 //             <div className="space-y-6">
 //               <h2 className="text-lg font-medium text-[#103BB5] mt-6">Additional Units</h2>
 //               <div className="space-y-4">
-//                 <div className="space-y-3">
-//                   {fields.map((field, idx) => (
-//                     <div key={field.id} className="flex items-center gap-3">
-//                       <div className="flex-1 grid grid-cols-2 gap-3">
-//                         <FormField
-//                           type="typeahead"
-//                           name={`additional_units.${idx}.unit`}
-//                           placeholder={`Select unit #${idx + 1}`}
-//                           options={getOptionsForRow(idx)}
-//                           disabled={!watchedMainUnitVal || isUnitsLoading || loading}
-//                         />
-
-//                         <FormField
-//                           type="input"
-//                           name={`additional_units.${idx}.quantity`}
-//                           placeholder="Quantity"
-//                           className="numbers-decimal"
-//                           disabled={loading}
-//                         />
-//                       </div>
-
-//                       <div className="flex items-center gap-2">
-//                         {fields.length > 0 && (
-//                           <Button
-//                             type="button"
-//                             variant="outline"
-//                             onClick={() => remove(idx)}
-//                             className="h-9"
-//                             disabled={loading}
-//                           >
-//                             Remove
-//                           </Button>
-//                         )}
-//                       </div>
+//                 {fields.map((field, idx) => (
+//                   <div key={field.id} className="flex items-center gap-3">
+//                     <div className="flex-1 grid grid-cols-2 gap-3">
+//                       <FormField
+//                         type="typeahead"
+//                         name={`additional_units.${idx}.unit`}
+//                         placeholder={`Select unit #${idx + 1}`}
+//                         options={getOptionsForRow(idx)}
+//                       />
+//                       <FormField
+//                         type="input"
+//                         name={`additional_units.${idx}.quantity`}
+//                         placeholder="Quantity"
+//                         className="numbers-decimal"
+//                       />
 //                     </div>
-//                   ))}
-
-//                   <div className="flex items-center justify-between">
-//                     <div />
-//                     <div className="flex items-center gap-3">
-//                       <Button
-//                         type="button"
-//                         variant="secondary"
-//                         onClick={handleAppendUnit}
-//                         disabled={loading || !canAddMoreUnits()}
-//                         title={
-//                           isUnitsLoading
-//                             ? "Loading units..."
-//                             : !watchedMainUnitVal
-//                             ? "Please select main unit first"
-//                             : ""
-//                         }
-//                       >
-//                         Add Unit
-//                       </Button>
-//                     </div>
+//                     <Button
+//                       type="button"
+//                       variant="outline"
+//                       onClick={() => remove(idx)}
+//                     >
+//                       Remove
+//                     </Button>
 //                   </div>
+//                 ))}
 
-//                   {/* <div className="pt-2">
-//                     <div className="text-sm text-gray-600">
-//                       Units added: <span className="font-semibold">{totalAdditional}</span>
-//                     </div>
-//                   </div> */}
-//                 </div>
+//                 <Button
+//                   type="button"
+//                   variant="secondary"
+//                   onClick={handleAppendUnit}
+//                   disabled={!canAddMoreUnits()}
+//                 >
+//                   + Add Unit
+//                 </Button>
 //               </div>
 //             </div>
 //           </div>
@@ -351,15 +281,18 @@
 //   );
 // }
 
+
+//API
 "use client";
 
 import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
 import { FormField } from "@/app/utils/dynamicField";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo, useEffect } from "react";
-import { format } from "date-fns";
 import ConfirmModal from "@/app/utils/confirmationModal";
 import { Toaster } from "@/components/ui/toaster";
+
+import { postAPI } from "@/app/utils/api"; 
 
 type Option = { label: string; value: string };
 
@@ -409,27 +342,22 @@ export default function MaterialForm() {
   };
 
   const { control, watch, setValue, reset } = methods;
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "additional_units",
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: "additional_units" });
 
   const watchedMainUnit = watch("main_unit");
   const watchedAdditional = watch("additional_units") || [];
 
-  const getUnitValue = (u: Option | string | null | undefined): string | null => {
+  const getUnitValue = (u: any): string | null => {
     if (!u) return null;
     if (typeof u === "string") return u;
-    return (u as Option).value ?? null;
+    return u.value ?? null;
   };
 
   const watchedMainUnitVal = getUnitValue(watchedMainUnit);
 
-  // Clear duplicate units
+  // Prevent duplicate units
   useEffect(() => {
     if (!watchedMainUnitVal) return;
-
     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
       if (getUnitValue(a?.unit) === watchedMainUnitVal) {
         setValue(`additional_units.${i}.unit`, null);
@@ -452,12 +380,10 @@ export default function MaterialForm() {
   const canAddMoreUnits = () => {
     const selected = new Set<string>();
     if (watchedMainUnitVal) selected.add(watchedMainUnitVal);
-
-    watchedAdditional.forEach((a: AdditionalUnit) => {
+    watchedAdditional.forEach((a) => {
       const v = getUnitValue(a?.unit);
       if (v) selected.add(v);
     });
-
     return selected.size < unitOptions.length;
   };
 
@@ -466,6 +392,7 @@ export default function MaterialForm() {
     append({ unit: null, quantity: "" });
   };
 
+  // ==================== SUBMIT ====================
   const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
     setFormData(data);
     setShowConfirm(true);
@@ -476,13 +403,33 @@ export default function MaterialForm() {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Transform data for backend
+      const payload = {
+        material_name: formData.material_name,
+        short_code: formData.short_code,
+        hsn: formData.hsn,
+        main_unit: getUnitValue(formData.main_unit),
+        additional_units: formData.additional_units
+          .filter((u) => u.unit)
+          .map((u) => ({
+            unit: getUnitValue(u.unit),
+            quantity: u.quantity,
+          })),
+      };
 
-      showToast("Material added successfully");
+      const response = await postAPI("NEW_MATERIAL", payload, true); // Add this endpoint in API_ENDPOINTS
 
-      reset(); // Reset form after success
-    } catch (err) {
-      showToast("Something went wrongS", "error");
+      if (response.status === "success") {
+        showToast("Material added successfully");
+        reset();
+        setTimeout(() => {
+          window.location.href = "/materials"; // or use router.push
+        }, 1200);
+      } else {
+        showToast(response.message || "Failed to add material", "error");
+      }
+    } catch (err: any) {
+      showToast(err.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
       setShowConfirm(false);
@@ -505,7 +452,6 @@ export default function MaterialForm() {
 
   return (
     <FormProvider {...methods}>
-      {/* Custom Toast */}
       {toast && (
         <Toaster
           message={toast.message}
@@ -580,11 +526,7 @@ export default function MaterialForm() {
                         className="numbers-decimal"
                       />
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => remove(idx)}
-                    >
+                    <Button type="button" variant="outline" onClick={() => remove(idx)}>
                       Remove
                     </Button>
                   </div>

@@ -79,7 +79,7 @@ const BASE_URL = "https://m4dgflgn-8080.inc1.devtunnels.ms/";
 
 export const API_ENDPOINTS = {
   LOGIN: "login",
-  ADD_CONTACT: "new_contact",
+  ADD_CONTACT: "add_contact",
   CONTACT_LIST: "contact-list",
   GET_CONTACT_BY_ID: "get-contact-by-id",
   UPDATE_CONTACT_STATUS: "update-contact-status",
@@ -87,7 +87,13 @@ export const API_ENDPOINTS = {
   DASHBOARD: "dashboard",
   SIGNUP: "signup",
   NEW_LEDGER: "new_ledger",
-  LEDGER_LIST:"ledger-list"
+  LEDGER_LIST:"ledger-list",
+  NEW_MATERIAL : "",
+  MATERIAL_LIST:"",
+  ADD_EQUIPMENT:"",
+  EQUIPMENT_LIST:"",
+  GET_WAREHOUSE_BY_ID:"",
+  WAREHOUSE_LIST:""
 } as const;
 
 export type EndpointKey = keyof typeof API_ENDPOINTS;
