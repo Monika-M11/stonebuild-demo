@@ -699,22 +699,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { postAPI } from "@/app/utils/api";
 
 type FormValues = {
-  full_name: string;        // kept for UI
-  dob: string;
+  full_name: string;
   phone: string;
-  alternate_phone: string;
   email: string;
-  address: string;
+  address: string;       // → addressLine1
+  city: string;          // ← add this
   pincode: string;
-  state: string;
+  bank_name: string;
+  branch_name: string;
   bank_account: string;
   ifsc: string;
-  branch_name: string;
-  bank_name: string;
+  gst_no: string;
   aadhaar: string;
   pan: string;
-  registeration_id?: string;
-  gst_no?: string;
 };
 
 type ContactFormProps = {
@@ -729,20 +726,20 @@ export default function ContactForm({ editId }: ContactFormProps) {
   const methods = useForm<FormValues>({
     defaultValues: {
       full_name: "",
-      dob: todayStr,
+      // dob: todayStr,
       phone: "",
-      alternate_phone: "",
+      // alternate_phone: "",
       email: "",
       address: "",
       pincode: "",
-      state: "",
+      // state: "",
       bank_account: "",
       ifsc: "",
       branch_name: "",
       bank_name: "",
       aadhaar: "",
       pan: "",
-      registeration_id: "",
+      // registeration_id: "",
       gst_no: "",
     },
   });
@@ -764,26 +761,26 @@ export default function ContactForm({ editId }: ContactFormProps) {
     const fetchContact = async () => {
       setLoading(true);
       try {
-        const response = await postAPI("GET_CONTACT_BY_ID", { contact_id: editId }, true);
+       const response = await postAPI("GET_CONTACT_BY_ID", { data: { contact_id: editId } }, true)
 
         if (response.status === "success" && response.data) {
           const c = response.data;
           methods.reset({
             full_name: c.full_name || c.contact_name || "",
-            dob: c.dob || todayStr,
+            // dob: c.dob || todayStr,
             phone: c.phone || "",
-            alternate_phone: c.alternate_phone || "",
+            // alternate_phone: c.alternate_phone || "",
             email: c.email || "",
             address: c.address || "",
             pincode: c.pincode || "",
-            state: c.state || "",
+            // state: c.state || "",
             bank_account: c.bank_account || "",
             ifsc: c.ifsc || "",
             branch_name: c.branch_name || "",
             bank_name: c.bank_name || "",
             aadhaar: c.aadhaar || "",
             pan: c.pan || "",
-            registeration_id: c.registeration_id || "",
+            // registeration_id: c.registeration_id || "",
             gst_no: c.gst_no || "",
           });
         } else {
@@ -809,36 +806,33 @@ export default function ContactForm({ editId }: ContactFormProps) {
     setLoading(true);
 
     try {
-      // 🔧 Transform payload to match backend expectation
-      const payload = {
-        contact_name: formData.full_name,        // ← Important fix
-        dob: formData.dob,
-        phone: formData.phone,
-        alternate_phone: formData.alternate_phone,
-        email: formData.email,
-        address: formData.address,
-        pincode: formData.pincode,
-        state: formData.state,
-        bank_account: formData.bank_account,
-        ifsc: formData.ifsc,
-        branch_name: formData.branch_name,
-        bank_name: formData.bank_name,
-        aadhaar: formData.aadhaar,
-        pan: formData.pan,
-        registeration_id: formData.registeration_id,
-        gst_no: formData.gst_no,
-        ...(editId && { contact_id: editId }),
-      };
+     const payload = {
+  contactName: formData.full_name,
+  phoneNumber: formData.phone,
+  email: formData.email,
+  addressLine1: formData.address,
+  addressLine2: "",          // you can add a separate field later
+  city: formData.city ?? "", // add city to FormValues if needed
+  pincode: formData.pincode,
+  bankName: formData.bank_name,
+  branchName: formData.branch_name,
+  bankAccountNumber: formData.bank_account,
+  ifscCode: formData.ifsc,
+  gstin: formData.gst_no,
+  aadhaarNumber: formData.aadhaar,
+  panNumber: formData.pan,
+  ...(editId && { contact_id: editId }),
+};
 
-      const response = await postAPI("ADD_CONTACT", payload, true);
+      const response = await postAPI("ADD_CONTACT",{ data: payload }, true);
 
-      if (response.status === "success") {
-        showToast(editId ? "Contact updated successfully" : "Contact added successfully");
-        methods.reset();
-        setTimeout(() => router.push("/contacts"), 1200);
-      } else {
-        showToast(response.message || "Operation failed", "error");
-      }
+     if (response.success === true) {
+  showToast(editId ? "Contact updated successfully" : "Contact added successfully", "success");
+  methods.reset();
+  setTimeout(() => router.push("/contacts"), 1200);
+} else {
+  showToast(response.message || "Operation failed", "error");
+}
     } catch (err: any) {
       showToast(err.message || "Something went wrong", "error");
     } finally {

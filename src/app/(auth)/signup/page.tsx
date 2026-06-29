@@ -364,9 +364,7 @@
 //     </>
 //   );
 // }
-
-
- "use client";
+"use client";
 
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -392,10 +390,7 @@ type FieldWrapperProps = {
   children: React.ReactNode;
 };
 
-function FieldWrapper({
-  label,
-  children,
-}: FieldWrapperProps) {
+function FieldWrapper({ label, children }: FieldWrapperProps) {
   return (
     <div className="space-y-2">
       <label className="form-label">{label}</label>
@@ -406,7 +401,7 @@ function FieldWrapper({
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
-const router = useRouter();
+  const router = useRouter();
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -418,59 +413,52 @@ const router = useRouter();
       email: "",
       phone: "",
       password: "",
-       
+      reenter_password: "",
     },
   });
-const onSubmit = async (data: SignupForm) => {
-  try {
-    setLoading(true);
 
-    // Password validation
+  const onSubmit = async (data: SignupForm) => {
     if (data.password !== data.reenter_password) {
-      setToast({
-        message: "Passwords do not match",
-        type: "error",
-      });
+      setToast({ message: "Passwords do not match", type: "error" });
       return;
     }
 
-    const response = await postAPI(
-      "/signup",
-      {
-        company_name: data.company_name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-      },
-      false
-    );
+    try {
+      setLoading(true);
 
-    if (response.status === "success") {
+      const response = await postAPI(
+        "REGISTER",
+        {
+          company_name: data.company_name,
+          email: data.email,
+          phone: data.phone,
+          password: data.password,
+        },
+        false
+      );
+
+      if (response.success === true) {
+        setToast({
+          message: response.message || "Company created successfully",
+          type: "success",
+        });
+        methods.reset();
+        setTimeout(() => router.push("/login"), 1500);
+      } else {
+        setToast({
+          message: response.message || "Signup failed",
+          type: "error",
+        });
+      }
+    } catch (error: any) {
       setToast({
-        message: response.message || "Company Created Successfully",
-        type: "success",
-      });
-
-      methods.reset();
-
-      setTimeout(() => {
-        router.push("/login");
-      }, 1000);
-    } else {
-      setToast({
-        message: response.message || "Failed",
+        message: error.message || "Something went wrong",
         type: "error",
       });
+    } finally {
+      setLoading(false);
     }
-  } catch (error: any) {
-    setToast({
-      message: error.message || "Failed",
-      type: "error",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <>
@@ -546,24 +534,20 @@ const onSubmit = async (data: SignupForm) => {
                 />
               </FieldWrapper>
 
-              <Button
-  type="submit"
-  className="w-full bg-[#103BB5]"
->
-  Create Company
-</Button>
+              <Button type="submit" className="w-full bg-[#103BB5]">
+                Create Company
+              </Button>
 
-<div className="text-center text-sm text-gray-600">
-  If you're already a client?{" "}
-  
-  <button
-    type="button"
-    onClick={() => router.push("/login")}
-    className="text-[#103BB5] font-medium hover:underline"
-  >
-    Click Login
-  </button>
-</div>
+              <div className="text-center text-sm text-gray-600">
+                Already a client?{" "}
+                <button
+                  type="button"
+                  onClick={() => router.push("/login")}
+                  className="text-[#103BB5] font-medium hover:underline"
+                >
+                  Click Login
+                </button>
+              </div>
             </form>
           </FormProvider>
         </div>

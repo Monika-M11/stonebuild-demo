@@ -287,8 +287,6 @@
 //   );
 // }
 
-
-//API
 "use client";
 
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
@@ -305,7 +303,17 @@ type LedgerType = {
   id?: string;
   ledger_type: string;
   ledger_name: string;
+  ledger_description?: string;
   status: string;
+};
+
+
+type ApiResponse = {
+  success?: boolean;
+  status?: string;
+  message?: string;
+  data?: any;
+  count?: number;
 };
 
 export default function LedgerTypeForm() {
@@ -313,6 +321,7 @@ export default function LedgerTypeForm() {
     defaultValues: {
       ledger_type: "",
       ledger_name: "",
+      ledger_description: "",
       status: "1",
     },
   });
@@ -332,23 +341,38 @@ export default function LedgerTypeForm() {
     { label: "Contact Ledger", value: "contact_ledger" },
   ];
 
-  // ==================== FETCH LEDGERS ====================
-  const fetchLedgers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await postAPI("LEDGER_LIST", {}, true);
+// ==================== FETCH LEDGERS ====================
+const fetchLedgers = useCallback(async () => {
+  setLoading(true);
+  try {
+    const payload = {
+      data: {
+       
+      },
+    };
 
-      if (response.status === "success" && Array.isArray(response.data)) {
-        setLedgerList(response.data);
-      } else {
-        toast.error(response.message || "Failed to load ledgers");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to fetch ledger list");
-    } finally {
-      setLoading(false);
+    const response: ApiResponse = await postAPI("LEDGER_LIST", payload, true);
+
+    console.log("🔍 LEDGER_LIST Full Response:", response);
+
+    let rawData: any[] = [];
+
+    if (Array.isArray(response.data)) {
+      rawData = response.data;
+    } else if (Array.isArray(response.data?.data)) {
+      rawData = response.data.data;
     }
-  }, []);
+
+    console.log("🔍 Extracted Ledgers:", rawData);
+
+    setLedgerList(rawData);
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.message || "Failed to fetch ledgers");
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchLedgers();
@@ -360,6 +384,7 @@ export default function LedgerTypeForm() {
     return ledgerList.filter((item) => item.ledger_type === selectedLedgerType);
   }, [ledgerList, selectedLedgerType]);
 
+  // ==================== SUBMIT (Create / Update) ====================
   const handleFormSubmit: SubmitHandler<LedgerType> = (data) => {
     setFormData(data);
     setShowConfirm(true);
@@ -371,27 +396,27 @@ export default function LedgerTypeForm() {
 
     try {
       const payload = {
-        ledger_type: formData.ledger_type,
-        ledger_name: formData.ledger_name,
-        status: formData.status,
-        ...(editId && { id: editId }), // or ledger_id depending on backend
+        data: {
+          ledgerType: formData.ledger_type,       
+          ledgerName: formData.ledger_name,
+          ledgerDescription: formData.ledger_description || "",
+          ...(editId && { id: editId }),           
+        },
       };
 
-      const response = await postAPI("NEW_LEDGER", payload, true);
+      const response: ApiResponse = await postAPI("NEW_LEDGER", payload, true);
 
-      if (response.status === "success" ) {
-        toast.success(editId ? "Ledger type updated successfully ✅" : "Ledger type added successfully ✅");
+      if (response?.success || response?.status === "success") {
+        toast.success(editId ? "Ledger updated successfully ✅" : "Ledger created successfully ✅");
         
-        // Refresh list
-        await fetchLedgers();
-        
-        // Reset form
-        methods.reset({ ledger_type: "", ledger_name: "", status: "1" });
+        await fetchLedgers();           // Refresh list
+        methods.reset();                // Reset form
         setEditId(null);
       } else {
-        toast.error(response.message || "Operation failed");
+        toast.error(response?.message || "Operation failed");
       }
     } catch (err: any) {
+      console.error(err);
       toast.error(err.message || "Something went wrong ❌");
     } finally {
       setLoading(false);
@@ -403,6 +428,7 @@ export default function LedgerTypeForm() {
     methods.reset({
       ledger_type: item.ledger_type,
       ledger_name: item.ledger_name,
+      ledger_description: item.ledger_description || "",
       status: item.status,
     });
     setEditId(item.id || null);
@@ -410,17 +436,16 @@ export default function LedgerTypeForm() {
   };
 
   const handleCancel = () => {
-    methods.reset({ ledger_type: "", ledger_name: "", status: "1" });
+    methods.reset({
+      ledger_type: "",
+      ledger_name: "",
+      ledger_description: "",
+      status: "1",
+    });
     setEditId(null);
   };
 
-  const Row = ({
-    label,
-    children,
-  }: {
-    label: string;
-    children: React.ReactNode;
-  }) => (
+  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="flex items-center justify-between gap-4">
       <label className="w-1/3 font-medium text-gray-700 text-[15px]">{label}</label>
       <div className="w-2/3">{children}</div>
@@ -430,10 +455,7 @@ export default function LedgerTypeForm() {
   return (
     <FormProvider {...methods}>
       <div className="bg-white">
-        <form
-          onSubmit={methods.handleSubmit(handleFormSubmit)}
-          className="flex flex-col pt-6 px-6"
-        >
+        <form onSubmit={methods.handleSubmit(handleFormSubmit)} className="flex flex-col pt-6 px-6">
           <div className="space-y-6">
             <Row label="Ledger Type">
               <FormField
@@ -451,6 +473,14 @@ export default function LedgerTypeForm() {
                 name="ledger_name"
                 placeholder="Enter ledger name"
                 validation={{ required: "Ledger name is required" }}
+              />
+            </Row>
+
+            <Row label="Description">
+              <FormField
+                type="textarea"
+                name="ledger_description"
+                placeholder="Enter description (optional)"
               />
             </Row>
 
@@ -474,22 +504,17 @@ export default function LedgerTypeForm() {
             </Row>
 
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} variant="default">
+              <Button type="submit" disabled={loading}>
                 {loading ? "Saving..." : editId ? "Update Ledger" : "Add Ledger"}
               </Button>
             </div>
           </div>
         </form>
 
-        {/* Filter Section */}
+        {/* Filter & Table Section - unchanged */}
         <div className="mt-6 px-6 flex items-center gap-4 border-t pt-4">
           <label className="font-medium text-gray-700">Filter by Type:</label>
           <select
@@ -505,7 +530,6 @@ export default function LedgerTypeForm() {
           </select>
         </div>
 
-        {/* Table Section */}
         <div className="p-6">
           <div className="max-h-[calc(100vh-420px)] overflow-y-auto border rounded-lg">
             <table className="table-default w-full">
@@ -521,66 +545,49 @@ export default function LedgerTypeForm() {
               <tbody>
                 {loading && ledgerList.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-500">
-                      Loading ledgers...
-                    </td>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">Loading ledgers...</td>
                   </tr>
                 ) : filteredList.length > 0 ? (
-                  filteredList.map((item, index) => (
-                    <tr key={item.id} className="border-t hover:bg-gray-50">
-                      <td className="text-center">{index + 1}</td>
-                      <td>
-                        {ledgerTypeOptions.find((opt) => opt.value === item.ledger_type)?.label ||
-                          item.ledger_type}
-                      </td>
-                      <td className="font-medium">{item.ledger_name}</td>
-                      <td className="text-center">
-                        {item.status === "1" ? (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="text-center">
-                        <span
-                          className="cursor-pointer text-[#103BB5] hover:underline flex items-center justify-center gap-1"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <PenIcon size={16} />
-                          Edit
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-500">
-                      No ledger types found
-                    </td>
-                  </tr>
-                )}
+  filteredList.map((item, index) => (
+    <tr key={item.id || item.id} className="border-t hover:bg-gray-50">
+      <td className="text-center">{index + 1}</td>
+      <td>{item.ledger_type || item.ledger_type}</td>
+      <td className="font-medium">{item.ledger_name || item.ledger_name}</td>
+      <td className="text-center">
+        {String(item.status) === "1" ? (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+        ) : (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>
+        )}
+      </td>
+      <td className="text-center">
+        <span
+          className="cursor-pointer text-[#103BB5] hover:underline flex items-center justify-center gap-1"
+          onClick={() => handleEdit(item)}
+        >
+          <PenIcon size={16} /> Edit
+        </span>
+      </td>
+    </tr>
+  ))
+) : (
+  <tr>
+    <td colSpan={5} className="text-center py-8 text-gray-500">No ledger types found</td>
+  </tr>
+)}
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       <ConfirmModal
         open={showConfirm}
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmSubmit}
         loading={loading}
         title="Confirm Submission"
-        message={
-          editId
-            ? "Are you sure you want to update this ledger type?"
-            : "Are you sure you want to add this ledger type?"
-        }
+        message={editId ? "Update this ledger?" : "Add this new ledger?"}
       />
     </FormProvider>
   );

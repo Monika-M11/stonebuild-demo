@@ -466,14 +466,14 @@ export default function Sidebar({
           normalizedPath={normalizedPath}
         />
 
-        <MenuItem
+        {/* <MenuItem
           icon={<BookOpen size={18} />}
           label="Ledger"
           route="/ledger"
           active={activeMenu === "Ledger"}
           onClick={handleMenuClick}
-        />
-  <MenuItem
+        /> */}
+  {/* <MenuItem
           icon={<BookOpen size={18} />}
           label="Purchase"
           route="/purchase"
@@ -563,7 +563,7 @@ export default function Sidebar({
           route="/support"
           active={activeMenu === "Support"}
           onClick={handleMenuClick}
-        />
+        /> */}
 
        
       </nav>

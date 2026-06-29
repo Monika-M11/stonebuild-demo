@@ -285,10 +285,303 @@
 //API
 "use client";
 
+// import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
+// import { FormField } from "@/app/utils/dynamicField";
+// import { Button } from "@/components/ui/button";
+// import { useState, useMemo, useEffect } from "react";
+// import ConfirmModal from "@/app/utils/confirmationModal";
+// import { Toaster } from "@/components/ui/toaster";
+
+// import { postAPI } from "@/app/utils/api"; 
+
+// type Option = { label: string; value: string };
+
+// type AdditionalUnit = {
+//   unit: Option | null | string;
+//   quantity: string;
+// };
+
+// type FormValues = {
+//   material_name: string;
+//   short_code: string;
+//   hsn: string;
+//   main_unit: Option | string | null;
+//   additional_units: AdditionalUnit[];
+// };
+
+// const dummyUnitOptions: Option[] = [
+//   { label: "Gram", value: "1" },
+//   { label: "Kilogram", value: "2" },
+//   { label: "Piece", value: "3" },
+//   { label: "Tola", value: "4" },
+//   { label: "Carat", value: "5" },
+//   { label: "Ounce", value: "6" },
+// ];
+
+// export default function MaterialForm() {
+//   const methods = useForm<FormValues>({
+//     defaultValues: {
+//       material_name: "",
+//       short_code: "",
+//       hsn: "",
+//       main_unit: null,
+//       additional_units: [],
+//     },
+//     mode: "onSubmit",
+//   });
+
+//   const [unitOptions] = useState<Option[]>(dummyUnitOptions);
+//   const [loading, setLoading] = useState(false);
+//   const [showConfirm, setShowConfirm] = useState(false);
+//   const [formData, setFormData] = useState<FormValues | null>(null);
+//   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+//   const showToast = (message: string, type: "success" | "error" = "success") => {
+//     setToast({ message, type });
+//     setTimeout(() => setToast(null), 2500);
+//   };
+
+//   const { control, watch, setValue, reset } = methods;
+//   const { fields, append, remove } = useFieldArray({ control, name: "additional_units" });
+
+//   const watchedMainUnit = watch("main_unit");
+//   const watchedAdditional = watch("additional_units") || [];
+
+//   const getUnitValue = (u: any): string | null => {
+//     if (!u) return null;
+//     if (typeof u === "string") return u;
+//     return u.value ?? null;
+//   };
+
+//   const watchedMainUnitVal = getUnitValue(watchedMainUnit);
+
+//   // Prevent duplicate units
+//   useEffect(() => {
+//     if (!watchedMainUnitVal) return;
+//     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
+//       if (getUnitValue(a?.unit) === watchedMainUnitVal) {
+//         setValue(`additional_units.${i}.unit`, null);
+//       }
+//     });
+//   }, [watchedMainUnitVal, watchedAdditional, setValue]);
+
+//   const getOptionsForRow = (rowIndex: number): Option[] => {
+//     const exclude = new Set<string>();
+//     if (watchedMainUnitVal) exclude.add(watchedMainUnitVal);
+
+//     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
+//       const v = getUnitValue(a?.unit);
+//       if (v && i !== rowIndex) exclude.add(v);
+//     });
+
+//     return unitOptions.filter((u) => !exclude.has(u.value));
+//   };
+
+//   const canAddMoreUnits = () => {
+//     const selected = new Set<string>();
+//     if (watchedMainUnitVal) selected.add(watchedMainUnitVal);
+//     watchedAdditional.forEach((a) => {
+//       const v = getUnitValue(a?.unit);
+//       if (v) selected.add(v);
+//     });
+//     return selected.size < unitOptions.length;
+//   };
+
+//   const handleAppendUnit = () => {
+//     if (!canAddMoreUnits()) return;
+//     append({ unit: null, quantity: "" });
+//   };
+
+//   // ==================== SUBMIT ====================
+//   const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
+//     setFormData(data);
+//     setShowConfirm(true);
+//   };
+
+//   const confirmSubmit = async () => {
+//     if (!formData) return;
+//     setLoading(true);
+
+//     try {
+//       // Transform data for backend
+//       const payload = {
+//         material_name: formData.material_name,
+//         short_code: formData.short_code,
+//         hsn: formData.hsn,
+//         main_unit: getUnitValue(formData.main_unit),
+//         additional_units: formData.additional_units
+//           .filter((u) => u.unit)
+//           .map((u) => ({
+//             unit: getUnitValue(u.unit),
+//             quantity: u.quantity,
+//           })),
+//       };
+
+//       const response = await postAPI("NEW_MATERIAL", payload, true); // Add this endpoint in API_ENDPOINTS
+
+//       if (response.status === "success") {
+//         showToast("Material added successfully");
+//         reset();
+//         setTimeout(() => {
+//           window.location.href = "/materials"; // or use router.push
+//         }, 1200);
+//       } else {
+//         showToast(response.message || "Failed to add material", "error");
+//       }
+//     } catch (err: any) {
+//       showToast(err.message || "Something went wrong", "error");
+//     } finally {
+//       setLoading(false);
+//       setShowConfirm(false);
+//       setFormData(null);
+//     }
+//   };
+
+//   const handleCancel = () => {
+//     reset();
+//     setFormData(null);
+//     setShowConfirm(false);
+//   };
+
+//   const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
+//     <div className="flex items-center justify-between gap-4">
+//       <label className="w-1/3 font-medium text-gray-700 text-[15px]">{label}</label>
+//       <div className="w-2/3">{children}</div>
+//     </div>
+//   );
+
+//   return (
+//     <FormProvider {...methods}>
+//       {toast && (
+//         <Toaster
+//           message={toast.message}
+//           type={toast.type}
+//           onClose={() => setToast(null)}
+//         />
+//       )}
+
+//       <div className="flex flex-col bg-white py-6">
+//         <div className="flex-1 max-h-[calc(100vh-180px)] overflow-y-auto px-3 pb-32">
+//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+//             {/* Left Column */}
+//             <div className="space-y-6">
+//               <h2 className="text-lg font-medium text-[#103BB5] mb-2">Material Details</h2>
+//               <div className="space-y-4">
+//                 <Row label="Material Name">
+//                   <FormField
+//                     type="input"
+//                     name="material_name"
+//                     placeholder="Enter material name"
+//                     validation={{ required: "Material name is required" }}
+//                   />
+//                 </Row>
+
+//                 <Row label="Short Code">
+//                   <FormField
+//                     type="input"
+//                     name="short_code"
+//                     placeholder="Enter short code"
+//                     className="uppercase no-space"
+//                   />
+//                 </Row>
+
+//                 <Row label="HSN">
+//                   <FormField
+//                     type="input"
+//                     name="hsn"
+//                     placeholder="Enter HSN"
+//                     className="only-numbers limit-10"
+//                   />
+//                 </Row>
+
+//                 <Row label="Main Unit">
+//                   <FormField
+//                     type="typeahead"
+//                     name="main_unit"
+//                     placeholder="Select main unit"
+//                     options={unitOptions}
+//                     validation={{ required: "Main unit is required" }}
+//                   />
+//                 </Row>
+//               </div>
+//             </div>
+
+//             {/* Right Column - Additional Units */}
+//             <div className="space-y-6">
+//               <h2 className="text-lg font-medium text-[#103BB5] mt-6">Additional Units</h2>
+//               <div className="space-y-4">
+//                 {fields.map((field, idx) => (
+//                   <div key={field.id} className="flex items-center gap-3">
+//                     <div className="flex-1 grid grid-cols-2 gap-3">
+//                       <FormField
+//                         type="typeahead"
+//                         name={`additional_units.${idx}.unit`}
+//                         placeholder={`Select unit #${idx + 1}`}
+//                         options={getOptionsForRow(idx)}
+//                       />
+//                       <FormField
+//                         type="input"
+//                         name={`additional_units.${idx}.quantity`}
+//                         placeholder="Quantity"
+//                         className="numbers-decimal"
+//                       />
+//                     </div>
+//                     <Button type="button" variant="outline" onClick={() => remove(idx)}>
+//                       Remove
+//                     </Button>
+//                   </div>
+//                 ))}
+
+//                 <Button
+//                   type="button"
+//                   variant="secondary"
+//                   onClick={handleAppendUnit}
+//                   disabled={!canAddMoreUnits()}
+//                 >
+//                   + Add Unit
+//                 </Button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Footer */}
+//         <footer className="fixed bottom-0 left-68 w-[calc(100%-16rem)] bg-white border-t py-2 px-6 flex justify-end space-x-4">
+//           <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+//             Cancel
+//           </Button>
+
+//           <Button
+//             variant="default"
+//             type="submit"
+//             onClick={methods.handleSubmit(handleFormSubmit)}
+//             disabled={loading}
+//           >
+//             {loading ? "Submitting..." : "Submit"}
+//           </Button>
+//         </footer>
+//       </div>
+
+//       <ConfirmModal
+//         open={showConfirm}
+//         onCancel={() => setShowConfirm(false)}
+//         onConfirm={confirmSubmit}
+//         loading={loading}
+//         title="Confirm Submission"
+//         message="Are you sure you want to add this material?"
+//       />
+//     </FormProvider>
+//   );
+// }
+
+
+
+"use client";
+
 import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
 import { FormField } from "@/app/utils/dynamicField";
 import { Button } from "@/components/ui/button";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ConfirmModal from "@/app/utils/confirmationModal";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -316,6 +609,7 @@ const dummyUnitOptions: Option[] = [
   { label: "Tola", value: "4" },
   { label: "Carat", value: "5" },
   { label: "Ounce", value: "6" },
+  { label: "Bag", value: "7" },
 ];
 
 export default function MaterialForm() {
@@ -347,42 +641,43 @@ export default function MaterialForm() {
   const watchedMainUnit = watch("main_unit");
   const watchedAdditional = watch("additional_units") || [];
 
-  const getUnitValue = (u: any): string | null => {
+  // Get Label instead of Value
+  const getUnitLabel = (u: any): string | null => {
     if (!u) return null;
     if (typeof u === "string") return u;
-    return u.value ?? null;
+    return u.label ?? null;        // ← Changed to .label
   };
 
-  const watchedMainUnitVal = getUnitValue(watchedMainUnit);
+  const watchedMainUnitLabel = getUnitLabel(watchedMainUnit);
 
   // Prevent duplicate units
   useEffect(() => {
-    if (!watchedMainUnitVal) return;
+    if (!watchedMainUnitLabel) return;
     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
-      if (getUnitValue(a?.unit) === watchedMainUnitVal) {
+      if (getUnitLabel(a?.unit) === watchedMainUnitLabel) {
         setValue(`additional_units.${i}.unit`, null);
       }
     });
-  }, [watchedMainUnitVal, watchedAdditional, setValue]);
+  }, [watchedMainUnitLabel, watchedAdditional, setValue]);
 
   const getOptionsForRow = (rowIndex: number): Option[] => {
     const exclude = new Set<string>();
-    if (watchedMainUnitVal) exclude.add(watchedMainUnitVal);
+    if (watchedMainUnitLabel) exclude.add(watchedMainUnitLabel);
 
     watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
-      const v = getUnitValue(a?.unit);
-      if (v && i !== rowIndex) exclude.add(v);
+      const label = getUnitLabel(a?.unit);
+      if (label && i !== rowIndex) exclude.add(label);
     });
 
-    return unitOptions.filter((u) => !exclude.has(u.value));
+    return unitOptions.filter((u) => !exclude.has(u.label));
   };
 
   const canAddMoreUnits = () => {
     const selected = new Set<string>();
-    if (watchedMainUnitVal) selected.add(watchedMainUnitVal);
+    if (watchedMainUnitLabel) selected.add(watchedMainUnitLabel);
     watchedAdditional.forEach((a) => {
-      const v = getUnitValue(a?.unit);
-      if (v) selected.add(v);
+      const label = getUnitLabel(a?.unit);
+      if (label) selected.add(label);
     });
     return selected.size < unitOptions.length;
   };
@@ -403,32 +698,32 @@ export default function MaterialForm() {
     setLoading(true);
 
     try {
-      // Transform data for backend
       const payload = {
-        material_name: formData.material_name,
-        short_code: formData.short_code,
-        hsn: formData.hsn,
-        main_unit: getUnitValue(formData.main_unit),
-        additional_units: formData.additional_units
-          .filter((u) => u.unit)
-          .map((u) => ({
-            unit: getUnitValue(u.unit),
-            quantity: u.quantity,
-          })),
+        data: {
+          material_name: formData.material_name,
+          short_code: formData.short_code,
+          hsn: formData.hsn,
+          main_unit: getUnitLabel(formData.main_unit),           // ← Now sending label
+          additional_units: formData.additional_units
+            .filter((u) => getUnitLabel(u.unit))
+            .map((u) => ({
+              unit_name: getUnitLabel(u.unit),
+              quantity: Number(u.quantity) || 0,
+            })),
+        },
       };
 
-      const response = await postAPI("NEW_MATERIAL", payload, true); // Add this endpoint in API_ENDPOINTS
+      const response = await postAPI("NEW_MATERIAL", payload, true);
 
-      if (response.status === "success") {
+      if (response?.success || response?.status === "success") {
         showToast("Material added successfully");
         reset();
-        setTimeout(() => {
-          window.location.href = "/materials"; // or use router.push
-        }, 1200);
+        setTimeout(() => window.location.href = "/materials", 1200);
       } else {
-        showToast(response.message || "Failed to add material", "error");
+        showToast(response?.message || "Failed to add material", "error");
       }
     } catch (err: any) {
+      console.error(err);
       showToast(err.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
@@ -439,7 +734,6 @@ export default function MaterialForm() {
 
   const handleCancel = () => {
     reset();
-    setFormData(null);
     setShowConfirm(false);
   };
 
@@ -452,61 +746,29 @@ export default function MaterialForm() {
 
   return (
     <FormProvider {...methods}>
-      {toast && (
-        <Toaster
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toaster message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div className="flex flex-col bg-white py-6">
         <div className="flex-1 max-h-[calc(100vh-180px)] overflow-y-auto px-3 pb-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {/* Left Column */}
             <div className="space-y-6">
               <h2 className="text-lg font-medium text-[#103BB5] mb-2">Material Details</h2>
               <div className="space-y-4">
                 <Row label="Material Name">
-                  <FormField
-                    type="input"
-                    name="material_name"
-                    placeholder="Enter material name"
-                    validation={{ required: "Material name is required" }}
-                  />
+                  <FormField type="input" name="material_name" placeholder="Enter material name" validation={{ required: "Material name is required" }} />
                 </Row>
-
                 <Row label="Short Code">
-                  <FormField
-                    type="input"
-                    name="short_code"
-                    placeholder="Enter short code"
-                    className="uppercase no-space"
-                  />
+                  <FormField type="input" name="short_code" placeholder="Enter short code" className="uppercase no-space" />
                 </Row>
-
                 <Row label="HSN">
-                  <FormField
-                    type="input"
-                    name="hsn"
-                    placeholder="Enter HSN"
-                    className="only-numbers limit-10"
-                  />
+                  <FormField type="input" name="hsn" placeholder="Enter HSN" className="only-numbers limit-10" />
                 </Row>
-
                 <Row label="Main Unit">
-                  <FormField
-                    type="typeahead"
-                    name="main_unit"
-                    placeholder="Select main unit"
-                    options={unitOptions}
-                    validation={{ required: "Main unit is required" }}
-                  />
+                  <FormField type="typeahead" name="main_unit" placeholder="Select main unit" options={unitOptions} validation={{ required: "Main unit is required" }} />
                 </Row>
               </div>
             </div>
 
-            {/* Right Column - Additional Units */}
             <div className="space-y-6">
               <h2 className="text-lg font-medium text-[#103BB5] mt-6">Additional Units</h2>
               <div className="space-y-4">
@@ -532,12 +794,7 @@ export default function MaterialForm() {
                   </div>
                 ))}
 
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleAppendUnit}
-                  disabled={!canAddMoreUnits()}
-                >
+                <Button type="button" variant="secondary" onClick={handleAppendUnit} disabled={!canAddMoreUnits()}>
                   + Add Unit
                 </Button>
               </div>
@@ -545,18 +802,11 @@ export default function MaterialForm() {
           </div>
         </div>
 
-        {/* Footer */}
         <footer className="fixed bottom-0 left-68 w-[calc(100%-16rem)] bg-white border-t py-2 px-6 flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-
-          <Button
-            variant="default"
-            type="submit"
-            onClick={methods.handleSubmit(handleFormSubmit)}
-            disabled={loading}
-          >
+          <Button variant="default" onClick={methods.handleSubmit(handleFormSubmit)} disabled={loading}>
             {loading ? "Submitting..." : "Submit"}
           </Button>
         </footer>

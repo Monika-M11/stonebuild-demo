@@ -75,21 +75,22 @@
 
 
 
-const BASE_URL = "https://m4dgflgn-8080.inc1.devtunnels.ms/";
+const BASE_URL = "https://lf5jrmrz-8080.inc1.devtunnels.ms/";
 
 export const API_ENDPOINTS = {
   LOGIN: "login",
-  ADD_CONTACT: "add_contact",
-  CONTACT_LIST: "contact-list",
+  REGISTER : "signup",
+  ADD_CONTACT: "new_contact",
+  CONTACT_LIST: "contacts_list",
   GET_CONTACT_BY_ID: "get-contact-by-id",
   UPDATE_CONTACT_STATUS: "update-contact-status",
   ADD_WAREHOUSE: "add-warehouse",
   DASHBOARD: "dashboard",
   SIGNUP: "signup",
   NEW_LEDGER: "new_ledger",
-  LEDGER_LIST:"ledger-list",
-  NEW_MATERIAL : "",
-  MATERIAL_LIST:"",
+  LEDGER_LIST:"ledgers_list",
+  NEW_MATERIAL : "new_material",
+  MATERIAL_LIST:"materials_list",
   ADD_EQUIPMENT:"",
   EQUIPMENT_LIST:"",
   GET_WAREHOUSE_BY_ID:"",
@@ -108,7 +109,8 @@ export const API_ENDPOINTS = {
 export type EndpointKey = keyof typeof API_ENDPOINTS;
 
 export interface ApiResponse {
-  status: string;
+  success?: boolean;   // ← add this
+  status?: string;
   message?: string;
   token?: string;
   user?: any;
