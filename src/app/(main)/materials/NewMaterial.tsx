@@ -574,8 +574,6 @@
 //   );
 // }
 
-
-
 "use client";
 
 import { useForm, FormProvider, SubmitHandler, useFieldArray, useWatch } from "react-hook-form";
@@ -584,13 +582,12 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import ConfirmModal from "@/app/utils/confirmationModal";
 import { Toaster } from "@/components/ui/toaster";
-
 import { postAPI } from "@/app/utils/api"; 
 
 type Option = { label: string; value: string };
 
 type AdditionalUnit = {
-  unit: Option | null | string;
+  unit: Option | string | null;
   quantity: string;
 };
 
@@ -601,16 +598,6 @@ type FormValues = {
   main_unit: Option | string | null;
   additional_units: AdditionalUnit[];
 };
-
-const dummyUnitOptions: Option[] = [
-  { label: "Gram", value: "1" },
-  { label: "Kilogram", value: "2" },
-  { label: "Piece", value: "3" },
-  { label: "Tola", value: "4" },
-  { label: "Carat", value: "5" },
-  { label: "Ounce", value: "6" },
-  { label: "Bag", value: "7" },
-];
 
 export default function MaterialForm() {
   const methods = useForm<FormValues>({
@@ -624,7 +611,16 @@ export default function MaterialForm() {
     mode: "onSubmit",
   });
 
-  const [unitOptions] = useState<Option[]>(dummyUnitOptions);
+  const [unitOptions, setUnitOptions] = useState<Option[]>([
+    { label: "Gram", value: "1" },
+    { label: "Kilogram", value: "2" },
+    { label: "Piece", value: "3" },
+    { label: "Tola", value: "4" },
+    { label: "Carat", value: "5" },
+    { label: "Ounce", value: "6" },
+    { label: "Bag", value: "7" },
+  ]);
+
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState<FormValues | null>(null);
@@ -641,11 +637,15 @@ export default function MaterialForm() {
   const watchedMainUnit = watch("main_unit");
   const watchedAdditional = watch("additional_units") || [];
 
-  // Get Label instead of Value
-  const getUnitLabel = (u: any): string | null => {
-    if (!u) return null;
-    if (typeof u === "string") return u;
-    return u.label ?? null;        // ← Changed to .label
+  // Robust label extractor
+  const getUnitLabel = (unit: any): string | null => {
+    if (!unit) return null;
+    if (typeof unit === "string") {
+      // If it's a value (number string), find corresponding label
+      const option = unitOptions.find(opt => opt.value === unit);
+      return option?.label || unit; // fallback to value if not found
+    }
+    return unit.label || unit.value || String(unit);
   };
 
   const watchedMainUnitLabel = getUnitLabel(watchedMainUnit);
@@ -653,18 +653,20 @@ export default function MaterialForm() {
   // Prevent duplicate units
   useEffect(() => {
     if (!watchedMainUnitLabel) return;
-    watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
-      if (getUnitLabel(a?.unit) === watchedMainUnitLabel) {
+
+    watchedAdditional.forEach((_, i) => {
+      const unitValue = watchedAdditional[i]?.unit;
+      if (getUnitLabel(unitValue) === watchedMainUnitLabel) {
         setValue(`additional_units.${i}.unit`, null);
       }
     });
-  }, [watchedMainUnitLabel, watchedAdditional, setValue]);
+  }, [watchedMainUnitLabel, watchedAdditional, setValue, unitOptions]);
 
   const getOptionsForRow = (rowIndex: number): Option[] => {
     const exclude = new Set<string>();
     if (watchedMainUnitLabel) exclude.add(watchedMainUnitLabel);
 
-    watchedAdditional.forEach((a: AdditionalUnit, i: number) => {
+    watchedAdditional.forEach((a, i) => {
       const label = getUnitLabel(a?.unit);
       if (label && i !== rowIndex) exclude.add(label);
     });
@@ -703,7 +705,7 @@ export default function MaterialForm() {
           material_name: formData.material_name,
           short_code: formData.short_code,
           hsn: formData.hsn,
-          main_unit: getUnitLabel(formData.main_unit),           // ← Now sending label
+          main_unit: getUnitLabel(formData.main_unit),
           additional_units: formData.additional_units
             .filter((u) => getUnitLabel(u.unit))
             .map((u) => ({
@@ -713,12 +715,13 @@ export default function MaterialForm() {
         },
       };
 
+      console.log("🚀 Final Payload:", JSON.stringify(payload, null, 2));
+
       const response = await postAPI("NEW_MATERIAL", payload, true);
 
       if (response?.success || response?.status === "success") {
         showToast("Material added successfully");
         reset();
-        setTimeout(() => window.location.href = "/materials", 1200);
       } else {
         showToast(response?.message || "Failed to add material", "error");
       }
@@ -764,7 +767,13 @@ export default function MaterialForm() {
                   <FormField type="input" name="hsn" placeholder="Enter HSN" className="only-numbers limit-10" />
                 </Row>
                 <Row label="Main Unit">
-                  <FormField type="typeahead" name="main_unit" placeholder="Select main unit" options={unitOptions} validation={{ required: "Main unit is required" }} />
+                  <FormField 
+                    type="typeahead" 
+                    name="main_unit" 
+                    placeholder="Select main unit" 
+                    options={unitOptions} 
+                    validation={{ required: "Main unit is required" }} 
+                  />
                 </Row>
               </div>
             </div>
@@ -794,7 +803,12 @@ export default function MaterialForm() {
                   </div>
                 ))}
 
-                <Button type="button" variant="secondary" onClick={handleAppendUnit} disabled={!canAddMoreUnits()}>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleAppendUnit} 
+                  disabled={!canAddMoreUnits()}
+                >
                   + Add Unit
                 </Button>
               </div>
@@ -806,7 +820,11 @@ export default function MaterialForm() {
           <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button variant="default" onClick={methods.handleSubmit(handleFormSubmit)} disabled={loading}>
+          <Button 
+            variant="default" 
+            onClick={methods.handleSubmit(handleFormSubmit)} 
+            disabled={loading}
+          >
             {loading ? "Submitting..." : "Submit"}
           </Button>
         </footer>

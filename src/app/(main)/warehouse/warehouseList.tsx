@@ -457,10 +457,12 @@
 
 
 
+
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useRouter, usePathname } from "next/navigation";
 import { Filter, X, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -477,9 +479,17 @@ type Warehouse = {
 };
 
 export default function WarehouseList() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [warehouseList, setWarehouseList] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedState, setSelectedState] = useState("");
@@ -487,30 +497,66 @@ export default function WarehouseList() {
   const [dateTo, setDateTo] = useState("");
 
   // ==================== FETCH WAREHOUSES ====================
-  const fetchWarehouses = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await postAPI("WAREHOUSE_LIST", {}, true); // Add this endpoint
+  const fetchWarehouses = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
 
-      if (response.status === "success" && Array.isArray(response.data)) {
-        setWarehouseList(response.data);
-        toast.success("Warehouses loaded successfully");
-      } else {
-        toast.error(response.message || "Failed to load warehouses");
+      try {
+        const payload = {
+          data: {
+            limit: limit,
+            page_no: page,
+          },
+        };
+
+        const response = await postAPI("WAREHOUSE_LIST", payload, true);
+
+        let newData: Warehouse[] = [];
+
+        if (Array.isArray(response.data)) {
+          newData = response.data;
+        } else if (Array.isArray(response.data?.data)) {
+          newData = response.data.data;
+        }
+
+        if (append) {
+          setWarehouseList((prev) => [...prev, ...newData]);
+        } else {
+          setWarehouseList(newData);
+        }
+
+        setCurrentPage(page);
+        setHasMore(newData.length === limit);
+
+        if (!append) toast.success("Warehouses loaded successfully");
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.message || "Failed to fetch warehouses");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch warehouses");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [limit]
+  );
 
+  // Initial Load
   useEffect(() => {
-    fetchWarehouses();
+    fetchWarehouses(1, false);
   }, [fetchWarehouses]);
 
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchWarehouses(currentPage + 1, true);
+  };
+
   const handleRefresh = () => {
-    fetchWarehouses();
+    fetchWarehouses(1, false);
+  };
+
+  const handleEdit = (id: string | number) => {
+    router.push(`${pathname}?edit-id=${id}`);
   };
 
   const filteredWarehouses = useMemo(() => {
@@ -608,9 +654,13 @@ export default function WarehouseList() {
             )}
 
             {filteredWarehouses.map((item, idx) => (
-              <tr key={item.id} className="border-b hover:bg-gray-50">
+              <tr
+                key={item.id}
+                className="border-b hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleEdit(item.id)}
+              >
                 <td className="text-center">{idx + 1}</td>
-                <td className="font-medium">{item.warehouse_name}</td>
+                <td className="font-medium hover:text-[#103BB5]">{item.warehouse_name}</td>
                 <td>{item.phone}</td>
                 <td className="max-w-xs truncate">{item.address}</td>
                 <td className="text-center">{item.pincode}</td>
@@ -623,6 +673,15 @@ export default function WarehouseList() {
           </tbody>
         </table>
       </div>
+
+      {/* LOAD MORE */}
+      {hasMore && !loading && warehouseList.length > 0 && (
+        <div className="flex justify-center mt-4">
+          <Button variant="outline" onClick={handleLoadMore} disabled={loadingMore}>
+            {loadingMore ? "Loading..." : "Load More"}
+          </Button>
+        </div>
+      )}
 
       {/* FILTER DRAWER - unchanged */}
       {showFilters && (

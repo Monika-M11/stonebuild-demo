@@ -347,7 +347,7 @@ export default function MaterialList() {
         },
       };
 
-      const response: ApiResponse = await postAPI("MATERIAL_LIST", payload, true);
+      const response = await postAPI("MATERIAL_LIST", payload, true);
 
       let newData: Material[] = [];
 

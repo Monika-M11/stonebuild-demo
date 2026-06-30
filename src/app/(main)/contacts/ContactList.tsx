@@ -635,9 +635,6 @@
 
 
 
-
-
-
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -647,16 +644,7 @@ import { Filter, X, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { postAPI } from "@/app/utils/api";
 
-// Define response type based on your API
-type ApiResponse = {
-  success?: boolean;
-  status?: string;
-  message?: string;
-  count?: number;
-  data?: any;
-  limit?: number;
-  page_no?: number;
-};
+
 
 type Contact = {
   id: string | number;
@@ -720,13 +708,26 @@ export default function ContactList() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Filters
-  const [searchTerm, setSearchTerm] = useState("");
+  // Status/state/date filters (client-side, unchanged from before)
   const [showActive, setShowActive] = useState(true);
   const [showInactive, setShowInactive] = useState(true);
   const [selectedState, setSelectedState] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  // ==================== NAME / PHONE / EMAIL FILTERS (server-side) ====================
+  // Draft values bound to the drawer inputs while the user is typing
+  const [filterName, setFilterName] = useState("");
+  const [filterPhone, setFilterPhone] = useState("");
+  const [filterEmail, setFilterEmail] = useState("");
+
+  // The values actually sent to the API — only updated when "Apply Filters" is clicked,
+  // so the table doesn't refetch on every keystroke.
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
 
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
@@ -736,82 +737,86 @@ export default function ContactList() {
   };
 
   // ==================== FETCH CONTACTS ====================
- const fetchContacts = useCallback(async (page: number = 1) => {
-  setLoading(true);
-  try {
-    const payload = {
-      data: {
-        limit: limit,
-        page_no: page,
-      },
-    };
+  const fetchContacts = useCallback(
+    async (page: number = 1, filters = appliedFilters) => {
+      setLoading(true);
+      try {
+        // Build conditions only with the fields the user actually filled in.
+        // If nothing is filled in, conditions is omitted entirely.
+        const conditions: Record<string, string> = {};
+        if (filters.name.trim()) conditions.contact_name = filters.name.trim();
+        if (filters.phone.trim()) conditions.phone_number = filters.phone.trim();
+        if (filters.email.trim()) conditions.email = filters.email.trim();
 
-    const response: ApiResponse = await postAPI("CONTACT_LIST", payload, true);
-    
-    console.log("🔍 Full API Response:", response);           // ← Check this
-    console.log("🔍 response.data:", response.data);
+        const payload = {
+          page: page,
+          limit: limit,
+          ...(Object.keys(conditions).length > 0 && { conditions: conditions }),
+        };
 
-    if (response?.success || response?.status === "success") {
-      // Handle different possible response structures
-      let rawContacts = [];
+        const response = await postAPI("CONTACT_LIST", payload, true);
 
-      if (Array.isArray(response.data)) {
-        rawContacts = response.data;
-      } else if (Array.isArray(response.data?.data)) {
-        rawContacts = response.data.data;
-      } else if (response.data) {
-        rawContacts = [response.data]; // fallback
+        console.log(" Full API Response:", response);
+        console.log(" response.data:", response.data);
+
+        if (response?.success || response?.status === "success") {
+          let rawContacts = [];
+
+          if (Array.isArray(response.data)) {
+            rawContacts = response.data;
+          } else if (Array.isArray(response.data?.data)) {
+            rawContacts = response.data.data;
+          } else if (response.data) {
+            rawContacts = [response.data]; // fallback
+          }
+
+          console.log("🔍 Extracted Contacts:", rawContacts);
+
+          const mappedData = rawContacts.map((item: any) => ({
+            ...item,
+            full_name: item.contact_name || item.full_name,
+            phone: item.phone_number || item.phone,
+          }));
+
+          const count = response.count ?? rawContacts.length;
+          setContactList(mappedData);
+          setTotalCount(count);
+          setCurrentPage(page);
+          setTotalPages(Math.ceil(count / limit) || 1);
+        } else {
+          showToast(response?.message || "Failed to load contacts", "error");
+        }
+      } catch (error: any) {
+        console.error("Fetch error:", error);
+        showToast("Failed to fetch contacts", "error");
+      } finally {
+        setLoading(false);
       }
-
-      console.log("🔍 Extracted Contacts:", rawContacts);   // ← Important
-
-      const mappedData = rawContacts.map((item: any) => ({
-        ...item,
-        full_name: item.contact_name || item.full_name,
-        phone: item.phone_number || item.phone,
-      }));
-
-      setContactList(mappedData);
-     
-      setCurrentPage(page);
-// In fetchContacts, replace the setTotalCount + setTotalPages lines:
-
-const count = response.count ?? rawContacts.length;
-setContactList(mappedData);
-setTotalCount(count);
-setCurrentPage(page);
-setTotalPages(Math.ceil(count / limit) || 1);
-    } else {
-      showToast(response?.message || "Failed to load contacts", "error");
-    }
-  } catch (error: any) {
-    console.error("Fetch error:", error);
-    showToast("Failed to fetch contacts", "error");
-  } finally {
-    setLoading(false);
-  }
-}, [limit]);
+    },
+    [limit, appliedFilters]
+  );
 
   // Initial Load
   useEffect(() => {
-    fetchContacts(1);
-  }, [fetchContacts]);
+    fetchContacts(1, appliedFilters);
+  
+  }, []);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
-    fetchContacts(page);
+    fetchContacts(page, appliedFilters);
   };
 
-  const handleRefresh = () => fetchContacts(currentPage);
+  const handleRefresh = () => fetchContacts(currentPage, appliedFilters);
 
   // Status Toggle
   const handleStatusToggle = async (contact_id: string | number) => {
     try {
       const payload = { data: { contact_id } };
-      const response: ApiResponse = await postAPI("UPDATE_CONTACT_STATUS", payload, true);
+      const response = await postAPI("UPDATE_CONTACT_STATUS", payload, true);
 
       if (response?.success || response?.status === "success") {
-        fetchContacts(currentPage);
+        fetchContacts(currentPage, appliedFilters);
         showToast("Status updated successfully");
       } else {
         showToast(response?.message || "Failed to update status", "error");
@@ -825,24 +830,15 @@ setTotalPages(Math.ceil(count / limit) || 1);
     router.push(`${pathname}?edit-id=${id}`);
   };
 
-  // Client-side Filtering
+  // ==================== CLIENT-SIDE FILTERING (status / state / date only) ====================
+  // Name/phone/email are now filtered server-side via Conditions, so they're
+  // removed from this client-side pass to avoid double-filtering / confusion.
   const filteredContacts = useMemo(() => {
     return contactList.filter((item) => {
-      const matchesSearch =
-        !searchTerm ||
-        item.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.phone_number?.includes(searchTerm) ||
-        item.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // const matchesStatus =
-      //   (showActive && item.status === 1) || (showInactive && item.status === 0);
-
-
-      // Replace matchesStatus logic:
-const matchesStatus =
-  item.status === undefined ||   // ← show contacts with no status field
-  (showActive && item.status === 1) ||
-  (showInactive && item.status === 0);
+      const matchesStatus =
+        item.status === undefined || // show contacts with no status field
+        (showActive && item.status === 1) ||
+        (showInactive && item.status === 0);
 
       const matchesState = !selectedState || item.state === selectedState;
 
@@ -858,22 +854,37 @@ const matchesStatus =
         }
       }
 
-      return matchesSearch && matchesStatus && matchesState && matchesDate;
+      return matchesStatus && matchesState && matchesDate;
     });
-  }, [contactList, searchTerm, showActive, showInactive, selectedState, dateFrom, dateTo]);
+  }, [contactList, showActive, showInactive, selectedState, dateFrom, dateTo]);
 
+  // ==================== APPLY / CLEAR ====================
   const handleClearFilters = () => {
-    setSearchTerm("");
+    setFilterName("");
+    setFilterPhone("");
+    setFilterEmail("");
     setShowActive(true);
     setShowInactive(true);
     setSelectedState("");
     setDateFrom("");
     setDateTo("");
+
+    const cleared = { name: "", phone: "", email: "" };
+    setAppliedFilters(cleared);
+    fetchContacts(1, cleared);
+
     showToast("Filters cleared");
     setShowFilters(false);
   };
 
   const handleApplyFilters = () => {
+    const newFilters = {
+      name: filterName,
+      phone: filterPhone,
+      email: filterEmail,
+    };
+    setAppliedFilters(newFilters);
+    fetchContacts(1, newFilters); // reset to page 1 whenever filters change
     showToast("Filters applied");
     setShowFilters(false);
   };
@@ -1010,9 +1021,50 @@ const matchesStatus =
                   </Button>
                 </div>
 
-                {/* Rest of your filter drawer remains the same */}
                 <div className="space-y-6">
-                  {/* ... (your existing filter fields) ... */}
+                  {/* Name filter */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      value={filterName}
+                      onChange={(e) => setFilterName(e.target.value)}
+                      placeholder="Search by name"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#103BB5]"
+                    />
+                  </div>
+
+                  {/* Phone filter */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      value={filterPhone}
+                      onChange={(e) => setFilterPhone(e.target.value)}
+                      placeholder="Search by phone"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#103BB5]"
+                    />
+                  </div>
+
+                  {/* Email filter */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={filterEmail}
+                      onChange={(e) => setFilterEmail(e.target.value)}
+                      placeholder="Search by email"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#103BB5]"
+                    />
+                  </div>
+
+                  {/* ... keep your existing status / state / date filter fields here ... */}
                 </div>
 
                 <div className="mt-8 flex gap-3">

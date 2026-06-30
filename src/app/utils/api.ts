@@ -1,16 +1,50 @@
- // /app/utils/api.ts
+
+
+
+
+// const BASE_URL = "https://lf5jrmrz-8080.inc1.devtunnels.ms/";
+
+// export const API_ENDPOINTS = {
+//   LOGIN: "login",
+//   REGISTER : "signup",
+//   ADD_CONTACT: "new_contact",
+//   CONTACT_LIST: "contacts_list",
+//   GET_CONTACT_BY_ID: "get-contact-by-id",
+//   UPDATE_CONTACT_STATUS: "update-contact-status",
+//   ADD_WAREHOUSE: "add-warehouse",
+//   DASHBOARD: "dashboard",
+//   SIGNUP: "signup",
+//   NEW_LEDGER: "new_ledger",
+//   LEDGER_LIST:"ledgers_list",
+//   NEW_MATERIAL : "new_material",
+//   MATERIAL_LIST:"materials_list",
+//   ADD_EQUIPMENT:"",
+//   EQUIPMENT_LIST:"",
+//   GET_WAREHOUSE_BY_ID:"",
+//   WAREHOUSE_LIST:"",
+//   PURCHASE_LIST:"",
+//   ADD_PURCHASE:"",
+//   ADD_EXPENSE:"",
+//   EXPENSE_LIST:"",
+//   ADD_QUOTATION:"",
+//   QUOTATION_LIST:"",
+//   LEAD_LIST:"",
+//   ADD_LEAD:"",
+//   ATTENDANCE_LIST:""
+// } as const;
+
+// export type EndpointKey = keyof typeof API_ENDPOINTS;
 
 // export interface ApiResponse {
-//   status: string;
+//   success?: boolean;   // ← add this
+//   status?: string;
 //   message?: string;
 //   token?: string;
 //   user?: any;
 //   data?: any;
 // }
 
-// const BASE_URL = "https://q2cp7g9m-8080.inc1.devtunnels.ms"; // ✅ fixed
-
-// // 🔐 Token helpers
+// // Token helpers (unchanged)
 // export const getToken = () => {
 //   if (typeof window !== "undefined") {
 //     return localStorage.getItem("token");
@@ -27,51 +61,75 @@
 //   localStorage.removeItem("token");
 //   localStorage.removeItem("user");
 // };
+
 // export const getSession = () => {
 //   if (typeof window !== "undefined") {
 //     const token = localStorage.getItem("token");
-//     const user = localStorage.getItem("user");
-
+//     const userStr = localStorage.getItem("user");
 //     return {
 //       token,
-//       user: user ? JSON.parse(user) : null,
+//       user: userStr ? JSON.parse(userStr) : null,
 //     };
 //   }
-//   return null;
+//   return { token: null, user: null };
 // };
-// // 🚀 Single POST API handler
+
+// // POST API with Detailed Logging
 // export const postAPI = async (
-//   endpoint: string,
-//   body: any,
+//   endpoint: EndpointKey,
+//   body: any = {},
 //   isAuthRequired: boolean = false
 // ): Promise<ApiResponse> => {
+//   const fullUrl = `${BASE_URL}${API_ENDPOINTS[endpoint]}`;
+
+//   // 🔥 DEBUG LOGS
+//   console.group(`🌐 API Request: ${endpoint}`);
+//   console.log("Full URL:", fullUrl);
+//   console.log("Payload:", JSON.stringify(body, null, 2));
+//   console.log("Auth Required:", isAuthRequired);
+//   if (isAuthRequired) {
+//     console.log("Token Present:", !!getToken());
+//   }
+//   console.groupEnd();
+
 //   const headers: HeadersInit = {
 //     "Content-Type": "application/json",
 //   };
 
-//   // ✅ Attach JWT token
 //   if (isAuthRequired) {
 //     const token = getToken();
 //     if (token) {
 //       headers["Authorization"] = `Bearer ${token}`;
+//     } else {
+//       console.warn(` Auth required for ${endpoint} but no token found`);
 //     }
 //   }
 
-//   const res = await fetch(`${BASE_URL}${endpoint}`, {
-//     method: "POST", // ✅ always POST
-//     headers,
-//     body: JSON.stringify(body),
-//   });
+//   try {
+//     const res = await fetch(fullUrl, {
+//       method: "POST",
+//       headers,
+//       body: JSON.stringify(body),
+//     });
 
-//   const data = await res.json();
+//     const data: ApiResponse = await res.json().catch(() => ({}));
 
-//   if (!res.ok) {
-//     throw new Error(data.message || "API Error");
+//     // Log Response
+//     console.group(` API Response: ${endpoint}`);
+//     console.log("Status:", res.status);
+//     console.log("Response Body:", data);
+//     console.groupEnd();
+
+//     if (!res.ok) {
+//       throw new Error(data.message || `HTTP Error ${res.status}`);
+//     }
+
+//     return data;
+//   } catch (error: any) {
+//     console.error(`❌ API Error [${endpoint}]:`, error.message);
+//     throw error;
 //   }
-
-//   return data;
 // };
-
 
 
 
@@ -79,7 +137,7 @@ const BASE_URL = "https://lf5jrmrz-8080.inc1.devtunnels.ms/";
 
 export const API_ENDPOINTS = {
   LOGIN: "login",
-  REGISTER : "signup",
+  REGISTER: "signup",
   ADD_CONTACT: "new_contact",
   CONTACT_LIST: "contacts_list",
   GET_CONTACT_BY_ID: "get-contact-by-id",
@@ -88,36 +146,43 @@ export const API_ENDPOINTS = {
   DASHBOARD: "dashboard",
   SIGNUP: "signup",
   NEW_LEDGER: "new_ledger",
-  LEDGER_LIST:"ledgers_list",
-  NEW_MATERIAL : "new_material",
-  MATERIAL_LIST:"materials_list",
-  ADD_EQUIPMENT:"",
-  EQUIPMENT_LIST:"",
-  GET_WAREHOUSE_BY_ID:"",
-  WAREHOUSE_LIST:"",
-  PURCHASE_LIST:"",
-  ADD_PURCHASE:"",
-  ADD_EXPENSE:"",
-  EXPENSE_LIST:"",
-  ADD_QUOTATION:"",
-  QUOTATION_LIST:"",
-  LEAD_LIST:"",
-  ADD_LEAD:"",
-  ATTENDANCE_LIST:""
+  LEDGER_LIST: "ledgers_list",
+  NEW_MATERIAL: "new_material",
+  MATERIAL_LIST: "materials_list",
+  ADD_EQUIPMENT: "",
+  EQUIPMENT_LIST: "",
+  GET_EQUIPMENT_BY_ID : "",
+  GET_WAREHOUSE_BY_ID: "",
+  WAREHOUSE_LIST: "",
+  PURCHASE_LIST: "",
+  ADD_PURCHASE: "",
+  ADD_EXPENSE: "",
+  EXPENSE_LIST: "",
+  ADD_QUOTATION: "",
+  QUOTATION_LIST: "",
+  LEAD_LIST: "",
+  ADD_LEAD: "",
+  ATTENDANCE_LIST: ""
 } as const;
 
 export type EndpointKey = keyof typeof API_ENDPOINTS;
 
+
 export interface ApiResponse {
-  success?: boolean;   // ← add this
-  status?: string;
+  success?: boolean;
+  status?: boolean | string;
   message?: string;
   token?: string;
   user?: any;
   data?: any;
+  count?: number;        
+  limit?: number;       
+  page_no?: number;      
+  totalPages?: number;  
 }
 
-// Token helpers (unchanged)
+// ==================== SESSION MANAGEMENT ====================
+
 export const getToken = () => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("token");
@@ -125,29 +190,44 @@ export const getToken = () => {
   return null;
 };
 
-export const setSession = (token: string, user: any) => {
-  localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(user));
+export const getCompanyId = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("company_id");
+  }
+  return null;
+};
+
+export const setSession = (token: string, companyId: string, userData?: any) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("token", token);
+    localStorage.setItem("company_id", companyId);
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+  }
 };
 
 export const clearSession = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
+    localStorage.removeItem("company_id");
+    localStorage.removeItem("user");
+  }
 };
 
 export const getSession = () => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
     return {
-      token,
-      user: userStr ? JSON.parse(userStr) : null,
+      token: localStorage.getItem("token"),
+      company_id: localStorage.getItem("company_id"),
+      user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null,
     };
   }
-  return { token: null, user: null };
+  return { token: null, company_id: null, user: null };
 };
 
-// POST API with Detailed Logging
+// ==================== POST API ====================
+
 export const postAPI = async (
   endpoint: EndpointKey,
   body: any = {},
@@ -155,13 +235,20 @@ export const postAPI = async (
 ): Promise<ApiResponse> => {
   const fullUrl = `${BASE_URL}${API_ENDPOINTS[endpoint]}`;
 
+  // Add company_id to every request if available
+  const companyId = getCompanyId();
+  const finalBody = companyId 
+    ? { ...body, company_id: companyId } 
+    : body;
+
   // 🔥 DEBUG LOGS
   console.group(`🌐 API Request: ${endpoint}`);
   console.log("Full URL:", fullUrl);
-  console.log("Payload:", JSON.stringify(body, null, 2));
+  console.log("Payload:", JSON.stringify(finalBody, null, 2));
   console.log("Auth Required:", isAuthRequired);
   if (isAuthRequired) {
     console.log("Token Present:", !!getToken());
+    console.log("Company ID:", companyId);
   }
   console.groupEnd();
 
@@ -174,7 +261,7 @@ export const postAPI = async (
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     } else {
-      console.warn(` Auth required for ${endpoint} but no token found`);
+      console.warn(`Auth required for ${endpoint} but no token found`);
     }
   }
 
@@ -182,13 +269,13 @@ export const postAPI = async (
     const res = await fetch(fullUrl, {
       method: "POST",
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(finalBody),
     });
 
     const data: ApiResponse = await res.json().catch(() => ({}));
 
     // Log Response
-    console.group(` API Response: ${endpoint}`);
+    console.group(`📥 API Response: ${endpoint}`);
     console.log("Status:", res.status);
     console.log("Response Body:", data);
     console.groupEnd();

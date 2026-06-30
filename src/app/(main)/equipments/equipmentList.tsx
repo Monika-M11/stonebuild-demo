@@ -313,83 +313,122 @@
 
 
 
+
+
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useRouter, usePathname } from "next/navigation";
 import { Filter, X, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { postAPI } from "@/app/utils/api"; // Adjust path
+import { postAPI } from "@/app/utils/api";
 
-type Equipment = {
-  id: number | string;
-  equipment_name: string;
-  brand?: string;
-  model?: string;
-  status: string;
-  purchase_date?: string;
-  last_service_date?: string;
-  next_service_date?: string;
-  codes_count?: number;
-  created_at?: string;
+type Warehouse = {
+  id: string;
+  warehouse_name: string;
+  phone: string;
+  address: string;
+  pincode: string | number;
+  state: string;
+  created_at: string;
 };
 
-export default function EquipmentList() {
-  const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
+export default function WarehouseList() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [warehouseList, setWarehouseList] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [showActive, setShowActive] = useState(true);
-  const [showInactive, setShowInactive] = useState(true);
+  const [selectedState, setSelectedState] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // ==================== FETCH EQUIPMENT ====================
-  const fetchEquipments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await postAPI("EQUIPMENT_LIST", {}, true); // Add this endpoint in api.ts
+  // ==================== FETCH WAREHOUSES ====================
+  const fetchWarehouses = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
 
-      if (response.status === "success" && Array.isArray(response.data)) {
-        setEquipmentList(response.data);
-        toast.success("Equipment list loaded successfully");
-      } else {
-        toast.error(response.message || "Failed to load equipment");
+      try {
+        const payload = {
+          data: {
+            limit: limit,
+            page_no: page,
+          },
+        };
+
+        const response = await postAPI("WAREHOUSE_LIST", payload, true);
+
+        let newData: Warehouse[] = [];
+
+        if (Array.isArray(response.data)) {
+          newData = response.data;
+        } else if (Array.isArray(response.data?.data)) {
+          newData = response.data.data;
+        }
+
+        if (append) {
+          setWarehouseList((prev) => [...prev, ...newData]);
+        } else {
+          setWarehouseList(newData);
+        }
+
+        setCurrentPage(page);
+        setHasMore(newData.length === limit);
+
+        if (!append) toast.success("Warehouses loaded successfully");
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.message || "Failed to fetch warehouses");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch equipment list");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [limit]
+  );
 
+  // Initial Load
   useEffect(() => {
-    fetchEquipments();
-  }, [fetchEquipments]);
+    fetchWarehouses(1, false);
+  }, [fetchWarehouses]);
 
-  const handleRefresh = () => {
-    fetchEquipments();
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchWarehouses(currentPage + 1, true);
   };
 
-  const filteredEquipments = useMemo(() => {
-    return equipmentList.filter((item) => {
+  const handleRefresh = () => {
+    fetchWarehouses(1, false);
+  };
+
+  const handleEdit = (id: string | number) => {
+    router.push(`${pathname}?edit-id=${id}`);
+  };
+
+  const filteredWarehouses = useMemo(() => {
+    return warehouseList.filter((item) => {
       const matchesSearch =
         !searchTerm ||
-        item.equipment_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.brand?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-        (item.model?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+        item.warehouse_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.phone.includes(searchTerm) ||
+        item.address.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus =
-        (showActive && item.status === "active") ||
-        (showInactive && item.status === "inactive");
+      const matchesState = !selectedState || item.state === selectedState;
 
       let matchesDate = true;
       if (dateFrom || dateTo) {
-        const itemDate = item.created_at ? new Date(item.created_at) : null;
-        if (!itemDate) return false;
-
+        const itemDate = new Date(item.created_at);
         if (dateFrom) {
           const fromDate = new Date(dateFrom);
           matchesDate = matchesDate && itemDate >= fromDate;
@@ -401,14 +440,13 @@ export default function EquipmentList() {
         }
       }
 
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesState && matchesDate;
     });
-  }, [equipmentList, searchTerm, showActive, showInactive, dateFrom, dateTo]);
+  }, [warehouseList, searchTerm, selectedState, dateFrom, dateTo]);
 
   const handleClearFilters = () => {
     setSearchTerm("");
-    setShowActive(true);
-    setShowInactive(true);
+    setSelectedState("");
     setDateFrom("");
     setDateTo("");
     toast.success("Filters cleared");
@@ -418,16 +456,6 @@ export default function EquipmentList() {
   const handleApplyFilters = () => {
     toast.success("Filters applied successfully");
     setShowFilters(false);
-  };
-
-  const renderCodes = (item: Equipment) => {
-    const count = item.codes_count ?? 0;
-    if (count === 0) return <span className="text-sm text-gray-500">—</span>;
-    return (
-      <div className="text-sm">
-        <div className="font-medium">{count} code{count > 1 ? "s" : ""}</div>
-      </div>
-    );
   };
 
   return (
@@ -454,62 +482,63 @@ export default function EquipmentList() {
       {/* TABLE */}
       <div className="max-h-[calc(100vh-230px)] overflow-y-auto border rounded-lg">
         <table className="table-default w-full">
-          <thead className="sticky top-0 z-10 bg-white">
+          <thead className="sticky top-0 bg-white z-10">
             <tr>
               <th className="text-center">S.no</th>
-              <th>Equipment Name</th>
-              <th>Brand</th>
-              <th>Model</th>
-              <th className="text-center">Status</th>
-              <th>Codes</th>
+              <th>Warehouse Name</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th className="text-center">Pincode</th>
+              <th>State</th>
               <th className="text-center">Created At</th>
             </tr>
           </thead>
           <tbody>
-            {loading && equipmentList.length === 0 && (
+            {loading && warehouseList.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
-                  Loading equipment...
+                  Loading warehouses...
                 </td>
               </tr>
             )}
 
-            {!loading && filteredEquipments.length === 0 && (
+            {!loading && filteredWarehouses.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
-                  No equipment found matching your filters
+                  No warehouses found matching your filters
                 </td>
               </tr>
             )}
 
-            {filteredEquipments.map((item, idx) => (
-              <tr key={item.id} className="border-b hover:bg-gray-50">
+            {filteredWarehouses.map((item, idx) => (
+              <tr
+                key={item.id}
+                className="border-b hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleEdit(item.id)}
+              >
                 <td className="text-center">{idx + 1}</td>
-                <td className="font-medium">{item.equipment_name}</td>
-                <td>{item.brand || "-"}</td>
-                <td>{item.model || "-"}</td>
+                <td className="font-medium hover:text-[#103BB5]">{item.warehouse_name}</td>
+                <td>{item.phone}</td>
+                <td className="max-w-xs truncate">{item.address}</td>
+                <td className="text-center">{item.pincode}</td>
+                <td>{item.state}</td>
                 <td className="text-center">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      item.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                </td>
-                <td>{renderCodes(item)}</td>
-                <td className="text-center">
-                  {item.created_at
-                    ? new Date(item.created_at).toLocaleDateString("en-GB")
-                    : "-"}
+                  {new Date(item.created_at).toLocaleDateString("en-GB")}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* LOAD MORE */}
+      {hasMore && !loading && warehouseList.length > 0 && (
+        <div className="flex justify-center mt-4">
+          <Button variant="outline" onClick={handleLoadMore} disabled={loadingMore}>
+            {loadingMore ? "Loading..." : "Load More"}
+          </Button>
+        </div>
+      )}
 
       {/* FILTER DRAWER - unchanged */}
       {showFilters && (
@@ -526,7 +555,7 @@ export default function EquipmentList() {
 
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Search by Name / Brand / Model</label>
+                  <label className="text-sm font-medium mb-1.5 block">Search by Name / Phone / Address</label>
                   <input
                     type="text"
                     value={searchTerm}
@@ -537,17 +566,20 @@ export default function EquipmentList() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Status</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={showActive} onChange={(e) => setShowActive(e.target.checked)} className="w-4 h-4" />
-                      <span>Active</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="w-4 h-4" />
-                      <span>Inactive</span>
-                    </label>
-                  </div>
+                  <label className="text-sm font-medium mb-2 block">State</label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 text-sm"
+                  >
+                    <option value="">All States</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    {/* Add more as needed */}
+                  </select>
                 </div>
 
                 <div>
