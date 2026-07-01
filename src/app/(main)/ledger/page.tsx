@@ -287,6 +287,9 @@
 //   );
 // }
 
+
+
+
 "use client";
 
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
@@ -296,7 +299,6 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/app/utils/confirmationModal";
 import { PenIcon } from "lucide-react";
-
 import { postAPI } from "@/app/utils/api";
 
 type LedgerType = {
@@ -305,15 +307,6 @@ type LedgerType = {
   ledger_name: string;
   ledger_description?: string;
   status: string;
-};
-
-
-type ApiResponse = {
-  success?: boolean;
-  status?: string;
-  message?: string;
-  data?: any;
-  count?: number;
 };
 
 export default function LedgerTypeForm() {
@@ -326,7 +319,9 @@ export default function LedgerTypeForm() {
     },
   });
 
-  const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState<LedgerType | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -341,42 +336,45 @@ export default function LedgerTypeForm() {
     { label: "Contact Ledger", value: "contact_ledger" },
   ];
 
-// ==================== FETCH LEDGERS ====================
-const fetchLedgers = useCallback(async () => {
-  setLoading(true);
-  try {
-    const payload = {
-      data: {
-       
-      },
-    };
+  // ==================== FETCH LEDGERS ====================
+  const fetchLedgers = useCallback(async () => {
+    setListLoading(true);
+    try {
+      const payload = {
+        data: {
+          ledger_type: selectedLedgerType || undefined,
+        },
+      };
 
-    const response: ApiResponse = await postAPI("LEDGER_LIST", payload, true);
+      const response = await postAPI("LEDGER_LIST", payload, true);
 
-    console.log("🔍 LEDGER_LIST Full Response:", response);
+      let rawData: any[] = [];
+      if (Array.isArray(response.data)) rawData = response.data;
+      else if (Array.isArray(response.data?.data)) rawData = response.data.data;
 
-    let rawData: any[] = [];
+      const mappedData: LedgerType[] = rawData.map((item: any) => ({
+        id: item.ID || item.id,
+        ledger_type: item.ledgerType || item.ledger_type,
+        ledger_name: item.ledgerName || item.ledger_name,
+        ledger_description: item.ledgerDescription || item.ledger_description || "",
+        status: item.status ?? "1",
+      }));
 
-    if (Array.isArray(response.data)) {
-      rawData = response.data;
-    } else if (Array.isArray(response.data?.data)) {
-      rawData = response.data.data;
+      setLedgerList(mappedData);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to fetch ledgers");
+    } finally {
+      setListLoading(false);
     }
+  }, [selectedLedgerType]);
 
-    console.log("🔍 Extracted Ledgers:", rawData);
-
-    setLedgerList(rawData);
-  } catch (err: any) {
-    console.error(err);
-    toast.error(err.message || "Failed to fetch ledgers");
-  } finally {
-    setLoading(false);
-  }
-}, []);
-
+  // Fetch when filter changes
   useEffect(() => {
-    fetchLedgers();
-  }, [fetchLedgers]);
+    if (selectedLedgerType !== "") {
+      fetchLedgers();
+    }
+  }, [selectedLedgerType, fetchLedgers]);
 
   // Filtered List
   const filteredList = useMemo(() => {
@@ -384,7 +382,7 @@ const fetchLedgers = useCallback(async () => {
     return ledgerList.filter((item) => item.ledger_type === selectedLedgerType);
   }, [ledgerList, selectedLedgerType]);
 
-  // ==================== SUBMIT (Create / Update) ====================
+  // ==================== SUBMIT ====================
   const handleFormSubmit: SubmitHandler<LedgerType> = (data) => {
     setFormData(data);
     setShowConfirm(true);
@@ -392,34 +390,33 @@ const fetchLedgers = useCallback(async () => {
 
   const confirmSubmit = async () => {
     if (!formData) return;
-    setLoading(true);
+    setSubmitLoading(true);
 
     try {
       const payload = {
         data: {
-          ledgerType: formData.ledger_type,       
+          ledgerType: formData.ledger_type,
           ledgerName: formData.ledger_name,
           ledgerDescription: formData.ledger_description || "",
-          ...(editId && { id: editId }),           
+          ...(editId && { id: editId }),
         },
       };
 
-      const response: ApiResponse = await postAPI("NEW_LEDGER", payload, true);
+      const response = await postAPI("NEW_LEDGER", payload, true);
 
       if (response?.success || response?.status === "success") {
-        toast.success(editId ? "Ledger updated successfully ✅" : "Ledger created successfully ✅");
-        
-        await fetchLedgers();           // Refresh list
-        methods.reset();                // Reset form
+        toast.success(editId ? "Ledger updated successfully" : "Ledger created successfully");
+        fetchLedgers();
+        methods.reset();
         setEditId(null);
       } else {
         toast.error(response?.message || "Operation failed");
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Something went wrong ❌");
+      toast.error(err.message || "Something went wrong");
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
       setShowConfirm(false);
     }
   };
@@ -432,16 +429,10 @@ const fetchLedgers = useCallback(async () => {
       status: item.status,
     });
     setEditId(item.id || null);
-    toast.success("Editing mode activated");
   };
 
   const handleCancel = () => {
-    methods.reset({
-      ledger_type: "",
-      ledger_name: "",
-      ledger_description: "",
-      status: "1",
-    });
+    methods.reset();
     setEditId(null);
   };
 
@@ -504,17 +495,17 @@ const fetchLedgers = useCallback(async () => {
             </Row>
 
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+              <Button type="button" variant="outline" onClick={handleCancel} disabled={submitLoading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : editId ? "Update Ledger" : "Add Ledger"}
+              <Button type="submit" disabled={submitLoading}>
+                {submitLoading ? "Saving..." : editId ? "Update Ledger" : "Add Ledger"}
               </Button>
             </div>
           </div>
         </form>
 
-        {/* Filter & Table Section - unchanged */}
+        {/* Filter */}
         <div className="mt-6 px-6 flex items-center gap-4 border-t pt-4">
           <label className="font-medium text-gray-700">Filter by Type:</label>
           <select
@@ -530,6 +521,7 @@ const fetchLedgers = useCallback(async () => {
           </select>
         </div>
 
+        {/* Table */}
         <div className="p-6">
           <div className="max-h-[calc(100vh-420px)] overflow-y-auto border rounded-lg">
             <table className="table-default w-full">
@@ -543,38 +535,40 @@ const fetchLedgers = useCallback(async () => {
                 </tr>
               </thead>
               <tbody>
-                {loading && ledgerList.length === 0 ? (
+                {listLoading ? (
                   <tr>
                     <td colSpan={5} className="text-center py-8 text-gray-500">Loading ledgers...</td>
                   </tr>
                 ) : filteredList.length > 0 ? (
-  filteredList.map((item, index) => (
-    <tr key={item.id || item.id} className="border-t hover:bg-gray-50">
-      <td className="text-center">{index + 1}</td>
-      <td>{item.ledger_type || item.ledger_type}</td>
-      <td className="font-medium">{item.ledger_name || item.ledger_name}</td>
-      <td className="text-center">
-        {String(item.status) === "1" ? (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
-        ) : (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>
-        )}
-      </td>
-      <td className="text-center">
-        <span
-          className="cursor-pointer text-[#103BB5] hover:underline flex items-center justify-center gap-1"
-          onClick={() => handleEdit(item)}
-        >
-          <PenIcon size={16} /> Edit
-        </span>
-      </td>
-    </tr>
-  ))
-) : (
-  <tr>
-    <td colSpan={5} className="text-center py-8 text-gray-500">No ledger types found</td>
-  </tr>
-)}
+                  filteredList.map((item, index) => (
+                    <tr key={item.id} className="border-t hover:bg-gray-50">
+                      <td className="text-center">{index + 1}</td>
+                      <td>{item.ledger_type}</td>
+                      <td className="font-medium">{item.ledger_name}</td>
+                      <td className="text-center">
+                        {String(item.status) === "1" ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        <span
+                          className="cursor-pointer text-[#103BB5] hover:underline flex items-center justify-center gap-1"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <PenIcon size={16} /> Edit
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                      {selectedLedgerType ? "No ledgers found for this type" : "Select a filter to view ledgers"}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -585,7 +579,7 @@ const fetchLedgers = useCallback(async () => {
         open={showConfirm}
         onCancel={() => setShowConfirm(false)}
         onConfirm={confirmSubmit}
-        loading={loading}
+        loading={submitLoading}
         title="Confirm Submission"
         message={editId ? "Update this ledger?" : "Add this new ledger?"}
       />

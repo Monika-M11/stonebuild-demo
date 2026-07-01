@@ -142,6 +142,7 @@ export const API_ENDPOINTS = {
   CONTACT_LIST: "contacts_list",
   GET_CONTACT_BY_ID: "get-contact-by-id",
   UPDATE_CONTACT_STATUS: "update-contact-status",
+  CONTACT_FILTER : "contact_filter",
   ADD_WAREHOUSE: "add-warehouse",
   DASHBOARD: "dashboard",
   SIGNUP: "signup",
@@ -236,7 +237,16 @@ export const postAPI = async (
   const fullUrl = `${BASE_URL}${API_ENDPOINTS[endpoint]}`;
 
   // Add company_id to every request if available
+
+
   const companyId = getCompanyId();
+
+const shouldAttachCompanyId =
+  isAuthRequired &&
+  companyId &&
+  endpoint !== "REGISTER" &&
+  endpoint !== "LOGIN";
+
   const finalBody = companyId 
     ? { ...body, company_id: companyId } 
     : body;

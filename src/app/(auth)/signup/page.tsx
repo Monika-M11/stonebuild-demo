@@ -437,7 +437,7 @@ export default function SignupPage() {
         false
       );
 
-      if (response.success === true) {
+      if (response.status === true) {
         setToast({
           message: response.message || "Company created successfully",
           type: "success",

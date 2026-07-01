@@ -466,13 +466,13 @@ export default function Sidebar({
           normalizedPath={normalizedPath}
         />
 
-        {/* <MenuItem
+        <MenuItem
           icon={<BookOpen size={18} />}
           label="Ledger"
           route="/ledger"
           active={activeMenu === "Ledger"}
           onClick={handleMenuClick}
-        /> */}
+        />
   {/* <MenuItem
           icon={<BookOpen size={18} />}
           label="Purchase"

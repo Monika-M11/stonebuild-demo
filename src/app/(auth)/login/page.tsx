@@ -542,9 +542,9 @@ export default function LoginPage() {
           username,
         });
 
-        console.log("✅ Session saved with Company ID:", company_id);
+        console.log("Session saved with Company ID:", company_id);
       } else {
-        console.warn("⚠️ Missing token or company_id in response");
+        console.warn("Missing token or company_id in response");
         // Fallback: store what we have
         if (response.data?.token) {
           localStorage.setItem("token", response.data.token);

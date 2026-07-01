@@ -825,7 +825,7 @@ export default function ContactForm({ editId }: ContactFormProps) {
 };
 
       const response = await postAPI("ADD_CONTACT",{ data: payload }, true);
-
+      console.log(response)
      if (response.success === true) {
   showToast(editId ? "Contact updated successfully" : "Contact added successfully", "success");
   methods.reset();

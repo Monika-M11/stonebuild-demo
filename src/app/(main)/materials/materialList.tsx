@@ -283,15 +283,11 @@
 // }
 
 //API
-
-
 "use client";
-
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Filter, X, RefreshCw, Loader } from "lucide-react";
-import { Toaster } from "@/components/ui/toaster";
-
+import { useRouter, usePathname } from "next/navigation";
+import { Filter, X, RefreshCw, ChevronLeft, ChevronRight, Loader } from "lucide-react";
 import { postAPI } from "@/app/utils/api";
 
 type Material = {
@@ -303,122 +299,139 @@ type Material = {
   created_at?: string;
 };
 
-type ApiResponse = {
-  success?: boolean;
-  status?: string;
-  message?: string;
-  data?: any;
-  count?: number;
-};
+type ToastType = "success" | "error";
+
+export function Toaster({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: ToastType;
+  onClose: () => void;
+}) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+      onClose();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  if (!visible) return null;
+  return (
+    <div
+      className={`fixed top-5 right-5 z-[9999] px-5 py-3 rounded-xl shadow-xl text-sm text-white transition-all duration-300 ${
+        type === "success" ? "bg-green-600" : "bg-red-600"
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
 
 export default function MaterialList() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
 
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const limit = 10;
+  const [limit] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // Filters - Draft (while typing in drawer)
+  const [filterMaterialName, setFilterMaterialName] = useState("");
+  const [filterShortCode, setFilterShortCode] = useState("");
   const [selectedHsn, setSelectedHsn] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const observerTarget = useRef<HTMLDivElement>(null);
+  // Filters - Applied (sent to API)
+  const [appliedFilters, setAppliedFilters] = useState({
+    materialName: "",
+    shortCode: "",
+  });
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const [showFilters, setShowFilters] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const showToast = (message: string, type: ToastType = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2500);
   };
 
   // ==================== FETCH MATERIALS ====================
-  const fetchMaterials = useCallback(async (page: number, append: boolean = false) => {
-    if (append) setLoadingMore(true);
-    else setLoading(true);
+  const fetchMaterials = useCallback(
+    async (page: number = 1, filters = appliedFilters) => {
+      setLoading(true);
+      try {
+        const conditions: Record<string, string> = {};
+        if (filters.materialName.trim()) {
+          conditions.material_name = filters.materialName.trim();
+        }
+        if (filters.shortCode.trim()) {
+          conditions.short_code = filters.shortCode.trim();
+        }
 
-    try {
-      const payload = {
-        data: {
-          limit: limit,
-          page_no: page,
-        },
-      };
+        const payload = {
+          page,
+          limit,
+          ...(Object.keys(conditions).length > 0 && { conditions }),
+        };
 
-      const response = await postAPI("MATERIAL_LIST", payload, true);
+        const response = await postAPI("MATERIAL_LIST", payload, true);
 
-      let newData: Material[] = [];
+        let rawMaterials: Material[] = [];
+        if (Array.isArray(response.data)) {
+          rawMaterials = response.data;
+        } else if (Array.isArray(response.data?.data)) {
+          rawMaterials = response.data.data;
+        }
 
-      if (Array.isArray(response.data)) {
-        newData = response.data;
-      } else if (Array.isArray(response.data?.data)) {
-        newData = response.data.data;
+        const count = response.count ?? rawMaterials.length;
+
+        setMaterials(rawMaterials);
+        setTotalCount(count);
+        setCurrentPage(page);
+        setTotalPages(Math.ceil(count / limit) || 1);
+      } catch (error: any) {
+        console.error(error);
+        showToast("Failed to fetch materials", "error");
+      } finally {
+        setLoading(false);
       }
-
-      if (append) {
-        setMaterials(prev => [...prev, ...newData]);
-      } else {
-        setMaterials(newData);
-      }
-
-      setCurrentPage(page);
-      setHasMore(newData.length === limit);
-
-    } catch (error: any) {
-      console.error(error);
-      showToast("Failed to fetch materials", "error");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [limit]);
+    },
+    [limit, appliedFilters]
+  );
 
   // Initial Load
   useEffect(() => {
-    fetchMaterials(1, false);
+    fetchMaterials(1);
   }, [fetchMaterials]);
 
-  // Infinite Scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          fetchMaterials(currentPage + 1, true);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [currentPage, hasMore, loadingMore, fetchMaterials]);
-
-  const handleRefresh = () => {
-    setMaterials([]);
-    setCurrentPage(1);
-    setHasMore(true);
-    fetchMaterials(1, false);
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    fetchMaterials(page, appliedFilters);
   };
 
-  // Client-side Filtering
+  const handleRefresh = () => {
+    fetchMaterials(currentPage, appliedFilters);
+  };
+
+  // Client-side filtering (HSN + Date only)
   const filteredMaterials = useMemo(() => {
     return materials.filter((item) => {
-      const matchesSearch =
-        !searchTerm ||
-        item.material_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.short_code && item.short_code.toLowerCase().includes(searchTerm.toLowerCase()));
-
       const matchesHsn = !selectedHsn || item.hsn === selectedHsn;
 
       let matchesDate = true;
       if (dateFrom || dateTo) {
-        const itemDate = item.created_at ? new Date(item.created_at) : null;
-        if (!itemDate) return false;
+        if (!item.created_at) return false;
+        const itemDate = new Date(item.created_at);
         if (dateFrom) matchesDate = matchesDate && itemDate >= new Date(dateFrom);
         if (dateTo) {
           const toDate = new Date(dateTo);
@@ -426,21 +439,31 @@ export default function MaterialList() {
           matchesDate = matchesDate && itemDate <= toDate;
         }
       }
-
-      return matchesSearch && matchesHsn && matchesDate;
+      return matchesHsn && matchesDate;
     });
-  }, [materials, searchTerm, selectedHsn, dateFrom, dateTo]);
+  }, [materials, selectedHsn, dateFrom, dateTo]);
 
   const handleClearFilters = () => {
-    setSearchTerm("");
+    setFilterMaterialName("");
+    setFilterShortCode("");
     setSelectedHsn("");
     setDateFrom("");
     setDateTo("");
+
+    const cleared = { materialName: "", shortCode: "" };
+    setAppliedFilters(cleared);
+    fetchMaterials(1, cleared);
     showToast("Filters cleared");
     setShowFilters(false);
   };
 
   const handleApplyFilters = () => {
+    const newFilters = {
+      materialName: filterMaterialName,
+      shortCode: filterShortCode,
+    };
+    setAppliedFilters(newFilters);
+    fetchMaterials(1, newFilters);
     showToast("Filters applied");
     setShowFilters(false);
   };
@@ -449,23 +472,27 @@ export default function MaterialList() {
     <>
       {toast && <Toaster message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="bg-white p-6">
-        {/* HEADER */}
-        <div className="flex justify-end items-center gap-3 mb-6 pr-4">
-          <Button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 bg-[#103BB5] hover:bg-[#0f2e8a] text-white">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-
-          <Button onClick={() => setShowFilters(true)} className="flex items-center gap-2 bg-[#103BB5] hover:bg-[#0f2e8a] text-white">
-            <Filter className="h-4 w-4" /> Filter
-          </Button>
+      <div className="bg-white">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6 pr-4">
+          <div className="text-sm text-gray-500">
+            Showing {filteredMaterials.length} of {totalCount} materials (Page {currentPage})
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={handleRefresh} disabled={loading} className="flex items-center gap-2 bg-[#103BB5] hover:bg-[#0f2e8a] text-white">
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button onClick={() => setShowFilters(true)} className="flex items-center gap-2 bg-[#103BB5] hover:bg-[#0f2e8a] text-white">
+              <Filter className="h-4 w-4" /> Filter
+            </Button>
+          </div>
         </div>
 
-        {/* TABLE */}
-        <div className="max-h-[calc(100vh-230px)] overflow-y-auto border rounded-lg">
+        {/* Table */}
+        <div className="max-h-[calc(100vh-280px)] overflow-y-auto border rounded-lg">
           <table className="table-default w-full">
-            <thead className="sticky top-0 z-10 bg-white">
+            <thead className="sticky top-0 bg-white z-10">
               <tr>
                 <th className="text-center">S.no</th>
                 <th>Material Name</th>
@@ -476,48 +503,134 @@ export default function MaterialList() {
               </tr>
             </thead>
             <tbody>
-              {loading && materials.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-500">Loading materials...</td>
+                  <td colSpan={6} className="text-center py-12 text-gray-500">
+                    Loading materials...
+                  </td>
                 </tr>
               ) : filteredMaterials.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-500">No materials found</td>
+                  <td colSpan={6} className="text-center py-12 text-gray-500">
+                    No materials found
+                  </td>
                 </tr>
               ) : (
                 filteredMaterials.map((item, idx) => (
                   <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="text-center">{idx + 1}</td>
-                    <td className="font-medium">{item.material_name}</td>
-                    <td>{item.short_code || "-"}</td>
-                    <td>{item.hsn || "-"}</td>
-                    <td>{item.main_unit || "-"}</td>
                     <td className="text-center">
-                      {item.created_at ? new Date(item.created_at).toLocaleDateString("en-GB") : "-"}
+                      {(currentPage - 1) * limit + idx + 1}
+                    </td>
+                    <td className="font-medium">{item.material_name}</td>
+                    <td>{item.short_code || "—"}</td>
+                    <td>{item.hsn || "—"}</td>
+                    <td>{item.main_unit || "—"}</td>
+                    <td className="text-center">
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString("en-GB") : "—"}
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
-
-          {/* Infinite Scroll Loader */}
-          {loadingMore && (
-            <div className="flex justify-center py-6">
-              <Loader className="h-6 w-6 animate-spin text-[#103BB5]" />
-            </div>
-          )}
-
-          {/* Sentinel for Infinite Scroll */}
-          {hasMore && <div ref={observerTarget} className="h-10" />}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 px-4">
+            <div className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages} • Total {totalCount} records
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={pageNum === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* FILTER DRAWER */}
         {showFilters && (
-          /* Your existing filter drawer code remains the same */
-          <div className="fixed inset-0 bg-black/60 z-50" onClick={() => setShowFilters(false)}>
-            {/* Paste your full filter drawer content here */}
-          </div>
+          <>
+            <div className="fixed inset-0 bg-black/60 z-50" onClick={() => setShowFilters(false)} />
+            <div className="fixed right-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-50 overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold">Filters</h2>
+                  <Button variant="ghost" size="icon" onClick={() => setShowFilters(false)}>
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Material Name</label>
+                    <input
+                      type="text"
+                      value={filterMaterialName}
+                      onChange={(e) => setFilterMaterialName(e.target.value)}
+                      placeholder="Search by material name"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#103BB5]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">Short Code</label>
+                    <input
+                      type="text"
+                      value={filterShortCode}
+                      onChange={(e) => setFilterShortCode(e.target.value)}
+                      placeholder="Search by short code"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#103BB5]"
+                    />
+                  </div>
+
+                  {/* Add HSN, Date From, Date To fields here if needed */}
+                  {/* ... your existing fields ... */}
+                </div>
+
+                <div className="mt-8 flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={handleClearFilters}>
+                    Clear
+                  </Button>
+                  <Button
+                    className="flex-1 bg-[#103BB5] hover:bg-[#0f2e8a]"
+                    onClick={handleApplyFilters}
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </>

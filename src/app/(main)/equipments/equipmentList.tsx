@@ -505,7 +505,7 @@ export default function WarehouseList() {
             {!loading && filteredWarehouses.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
-                  No warehouses found matching your filters
+                  No Equipment found matching your filters
                 </td>
               </tr>
             )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "./sidebar";
+import { clearSession } from "@/app/utils/api";
 
 export default function MainLayout({
   children,
@@ -39,7 +40,7 @@ export default function MainLayout({
 
           <button
             onClick={() => {
-              localStorage.removeItem("token");
+              clearSession();
               router.push("/login");
             }}
             className="text-sm bg-red-500 text-white px-3 py-1 rounded"
